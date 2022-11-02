@@ -2,7 +2,9 @@ const { MongoClient } = require("mongodb");
 
 let mongoose = require("mongoose");
 const { Schema } = mongoose;
-
+if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config();
+}
 const userSchema = new Schema({
   name: String,
   lastname: String,
