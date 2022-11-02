@@ -2,6 +2,7 @@ const { MongoClient } = require("mongodb");
 
 let mongoose = require("mongoose");
 const { Schema } = mongoose;
+require("dotenv").config({ path: "ENV_FILENAME" });
 
 const userSchema = new Schema({
   name: String,
