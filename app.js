@@ -15,8 +15,23 @@ const userCreate = require("./controller/user.controller");
 
 var app = express();
 
-var cors = require("cors");
-app.use(cors());
+// var cors = require("cors");
+// app.use(cors());
+
+const corsOpts = {
+  origin: "*",
+
+  methods: ["GET", "POST", "DELETE", "UPDATE"],
+
+  allowedHeaders: ["Content-Type", "Access-Control-Allow-Origin"],
+};
+
+app.use(cors(corsOpts));
+
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  next();
+});
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));

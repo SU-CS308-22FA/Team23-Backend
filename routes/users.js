@@ -1,7 +1,7 @@
 var express = require("express");
 var router = express.Router();
 const userModel = require("../models/user.model");
-let bcrypt = require("bcrypt");
+let bcrypt = require("bcryptjs");
 let auth = require("../controller/auth");
 
 // /* GET users listing. */
