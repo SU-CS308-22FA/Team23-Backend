@@ -23,10 +23,19 @@ const userSchema = new Schema({
   password: String,
 });
 
+const productSchema = new Schema({
+  //auction id
+  type: String,
+  name: String,
+  owner: String,
+  sold: Boolean,
+});
+
 async function run() {
   // Create a separate connection and register a model on it...
   const conn = mongoose.createConnection();
   conn.model("User", userSchema);
+  conn.model("Product", productSchema);
 
   const dbURL =
     process.env.DB_URL ||

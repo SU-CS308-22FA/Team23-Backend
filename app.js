@@ -9,6 +9,7 @@ var cors = require("cors");
 
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
+var productsRouter = require("./routes/products");
 
 const mongoConnection = require("./controller/mongoDB.controller");
 const userCreate = require("./controller/user.controller");
@@ -45,6 +46,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
+app.use("/products", productsRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
