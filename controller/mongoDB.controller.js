@@ -28,6 +28,7 @@ const productSchema = new Schema({
   type: String,
   name: String,
   owner: String,
+  image: String,
   sold: Boolean,
 });
 
