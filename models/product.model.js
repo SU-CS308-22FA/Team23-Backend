@@ -12,6 +12,7 @@ const productSchema = new Schema({
   name: String,
   owner: String,
   image: String,
+  cloudinary_id: String,
   sold: Boolean,
 });
 
