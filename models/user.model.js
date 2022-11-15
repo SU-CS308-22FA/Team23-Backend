@@ -19,8 +19,9 @@ const userSchema = new Schema({
   // },
   password: String,
   status: Boolean,
+  products: Array,
 });
 
 module.exports = mongoose.model("User", userSchema);
 
-"test"
+("test");

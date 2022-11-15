@@ -21,6 +21,7 @@ const userSchema = new Schema({
   //   },
   // },
   password: String,
+  products: Array,
 });
 
 const productSchema = new Schema({
@@ -29,6 +30,7 @@ const productSchema = new Schema({
   name: String,
   owner: String,
   image: String,
+  cloudinary_id: String,
   sold: Boolean,
 });
 
