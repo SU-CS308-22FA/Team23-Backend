@@ -18,8 +18,10 @@ exports.upload = catchAsync(async (req, res, next) => {
   newProduct.type = req.body.type;
   newProduct.name = req.body.name;
   newProduct.owner = req.body.owner;
+  newProduct.image = req.body.image;
   // newUser.password = await bcrypt.hash(req.body.password, 12);
   newProduct.sold = false;
+
   await newProduct.save(function (err, data) {
     if (err) {
       console.log(error);
