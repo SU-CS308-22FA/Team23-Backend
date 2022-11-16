@@ -16,6 +16,7 @@ exports.signup = catchAsync(async (req, res, next) => {
   newUser.email = req.body.email;
   // newUser.password = await bcrypt.hash(req.body.password, 12);
   newUser.password = req.body.password;
+  newUser.products = [];
   newUser.status = true;
 
   let users = await userModel.find().where({ email: newUser.email });
@@ -81,8 +82,6 @@ exports.profile = catchAsync(async (req, res, next) => {
 });
 
 exports.update = catchAsync(async (req, res, next) => {
-  // let email = req.body.email;
-  // let oldPassword = req.body.oldpassword;
   let newPassword = req.body.newpassword;
   let oldPassword = req.body.oldpassword;
   let email = req.body.email;
