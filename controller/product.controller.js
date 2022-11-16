@@ -8,11 +8,22 @@ const Product = require("../models/product.model");
 
 const userModel = require("../models/user.model");
 const catchAsync = require("./../utils/catchAsync");
+const { ObjectId } = require('mongodb');
 
 exports.uploadImage = catchAsync(async (req, res, next) => {
   try {
     // Upload image to cloudinary
     const result = await cloudinary.uploader.upload(req.file.path);
+    const myId = new ObjectId();
+
+    let email = req.body.email;
+    let users = await userModel.find().where({ email: email });
+
+    let query = { email: email };
+    let newValue = { $push: { products: myId } };
+    userModel.updateOne(query, newValue, () => {
+      console.log(query, newValue);
+    });
 
     // Create new user
     let product = new Product({
@@ -21,9 +32,11 @@ exports.uploadImage = catchAsync(async (req, res, next) => {
       type: req.body.type,
       image: result.secure_url,
       cloudinary_id: result.public_id,
+      _id: myId,
     });
     // Save user
     await product.save();
+
     res.json(product);
   } catch (err) {
     console.log(err);
