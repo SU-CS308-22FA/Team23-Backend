@@ -5,6 +5,11 @@ const { Schema } = mongoose;
 if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
+
+// const productSchema = require("../models/product.model");
+// const userSchema = require("../models/user.model");
+// const auctionSchema = require("../models/auction.model");
+
 const userSchema = new Schema({
   name: String,
   lastname: String,
@@ -35,11 +40,23 @@ const productSchema = new Schema({
   sold: Boolean,
 });
 
+const auctionSchema = new Schema({
+  _id: String,
+  product_id: String,
+  bids: [Number],
+  duration: Number,
+  start_date: Number,
+  finish_date: Number,
+  base_price: Number,
+  open: Boolean,
+});
+
 async function run() {
   // Create a separate connection and register a model on it...
   const conn = mongoose.createConnection();
   conn.model("User", userSchema);
   conn.model("Product", productSchema);
+  conn.model("Auction", auctionSchema);
 
   const dbURL =
     process.env.DB_URL ||
