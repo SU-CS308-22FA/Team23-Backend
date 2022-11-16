@@ -65,3 +65,16 @@ exports.updateImage = catchAsync(async (req, res, next) => {
     console.log(err);
   }
 });
+exports.getProducts = catchAsync(async (req, res, next) => {
+
+  console.log("tes");
+  let products = await Product.find().sort({_id:1});
+  //console.log(users);
+  if (products.length > 0) {
+    res.send({
+      message: products,
+    });
+  } else {
+    console.log("wrong email");
+  }
+});
