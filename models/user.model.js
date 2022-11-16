@@ -19,7 +19,7 @@ const userSchema = new Schema({
   // },
   password: String,
   status: Boolean,
-  products: Array,
+  products: [String],
 });
 
 module.exports = mongoose.model("User", userSchema);
