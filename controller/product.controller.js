@@ -112,3 +112,20 @@ exports.getProductPage = catchAsync(async (req, res, next) => {
     console.log("error");
   }
 });
+
+exports.search = catchAsync(async (req, res, next) => {
+  let search = req.params.searchQuery;
+  console.log(search);
+
+  let products = await Product.find();
+  //Product.createIndex({ name: "text", description: "text" })
+  //let products = Product.find({ $text: { $search: search } })
+
+  if (products.length > 0) {
+    res.send({
+      message: products,
+    });
+  } else {
+    console.log("wrong email");
+  }
+})
