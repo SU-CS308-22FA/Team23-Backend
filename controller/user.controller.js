@@ -7,6 +7,7 @@ const { Schema } = mongoose;
 
 const { MongoClient, MongoGridFSChunkError } = require("mongodb");
 const userModel = require("../models/user.model");
+const teamModel = require("../models/team.model");
 const catchAsync = require("./../utils/catchAsync");
 
 exports.signup = catchAsync(async (req, res, next) => {
@@ -133,5 +134,23 @@ exports.delete = catchAsync(async (req, res, next) => {
     });
   } else {
     console.log("wrong email");
+  }
+});
+
+
+exports.team = catchAsync(async (req, res, next) => {
+  let email = req.params.email;
+
+  let user = await userModel.find().where({email: email});
+  let team = await teamModel.find().where({team: email});
+
+  let message = {user: user, team:team, res:true}
+
+  if (user.length > 0 && team.length > 0) {
+    res.send({
+      message: message,
+    });
+  } else {
+    console.log("not admin");
   }
 });

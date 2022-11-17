@@ -54,12 +54,18 @@ const auctionSchema = new Schema({
   open: Boolean,
 });
 
+const teamSchema = new Schema({
+  team: String,
+  logo: String
+});
+
 async function run() {
   // Create a separate connection and register a model on it...
   const conn = mongoose.createConnection();
   conn.model("User", userSchema);
   conn.model("Product", productSchema);
   conn.model("Auction", auctionSchema);
+  conn.model("Team", teamSchema);
 
   const dbURL =
     process.env.DB_URL ||
