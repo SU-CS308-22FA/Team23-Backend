@@ -8,9 +8,11 @@ router.post("/upload", upload.single("image"), productController.uploadImage);
 
 router.get("/test", productController.getProducts);
 
-router.put("/update/:id", upload.single("image"), productController.updateImage);
-
-
-
+router.put(
+  "/update/:id",
+  upload.single("image"),
+  productController.updateImage
+);
+router.get("/productPage/:id", productController.getProductPage);
 
 module.exports = router;

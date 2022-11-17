@@ -15,7 +15,9 @@ const productSchema = new Schema({
   cloudinary_id: String,
   _id: String,
   sold: Boolean,
+  start_date: Number,
+  duration: Number,
+  price: Number,
 });
 
 module.exports = mongoose.model("Product", productSchema);
-
