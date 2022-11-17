@@ -8,7 +8,7 @@ const Product = require("../models/product.model");
 
 const userModel = require("../models/user.model");
 const catchAsync = require("./../utils/catchAsync");
-const { ObjectId } = require('mongodb');
+const { ObjectId } = require("mongodb");
 
 exports.uploadImage = catchAsync(async (req, res, next) => {
   try {
@@ -25,7 +25,8 @@ exports.uploadImage = catchAsync(async (req, res, next) => {
       console.log(query, newValue);
     });
 
-    // Create new user
+    let currentDate = Date.now();
+    let duration = 604800000;
     let product = new Product({
       name: req.body.name,
       owner: req.body.owner,
@@ -33,6 +34,10 @@ exports.uploadImage = catchAsync(async (req, res, next) => {
       image: result.secure_url,
       cloudinary_id: result.public_id,
       _id: myId,
+      sold: false,
+      start_date: currentDate,
+      duration: duration,
+      price: req.body.price,
     });
     // Save user
     await product.save();
@@ -42,6 +47,20 @@ exports.uploadImage = catchAsync(async (req, res, next) => {
     console.log(err);
   }
 });
+
+// const productSchema = new Schema({
+//   auction id
+//   type: String,
+//   name: String,
+//   owner: String,
+//   image: String,
+//   cloudinary_id: String,
+//   _id: String,
+//   sold: Boolean,
+//   duration: Number,
+//   base_price: Number,
+// });
+
 exports.updateImage = catchAsync(async (req, res, next) => {
   try {
     let product = await Product.findById(req.params.id);
@@ -66,9 +85,8 @@ exports.updateImage = catchAsync(async (req, res, next) => {
   }
 });
 exports.getProducts = catchAsync(async (req, res, next) => {
-
   console.log("tes");
-  let products = await Product.find().sort({_id:1});
+  let products = await Product.find().sort({ _id: 1 });
   //console.log(users);
   if (products.length > 0) {
     res.send({
@@ -76,5 +94,21 @@ exports.getProducts = catchAsync(async (req, res, next) => {
     });
   } else {
     console.log("wrong email");
+  }
+});
+
+exports.getProductPage = catchAsync(async (req, res, next) => {
+  //get operation
+  let id = req.params.id;
+  console.log(id);
+
+  let product = await Product.find().where({ id: id });
+  //console.log(users);
+  if (product.length > 0) {
+    res.send({
+      message: product,
+    });
+  } else {
+    console.log("error");
   }
 });
