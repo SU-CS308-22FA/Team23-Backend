@@ -97,6 +97,36 @@ exports.getProducts = catchAsync(async (req, res, next) => {
   }
 });
 
+exports.getTeamProducts = catchAsync(async (req, res, next) => {
+  let email = req.params.id;
+  let user = await userModel.find().where({ email: email });
+  let name = user[0].name;
+  let products = await Product.find().where({ owner: name });
+  console.log(name);
+  console.log(email);
+  console.log(products);
+  if (products.length > 0) {
+    res.send({
+      message: products,
+    });
+  } else {
+    console.log("wrong email");
+  }
+  // let email = req.params.id;
+  // let name = email.substr(0, email.indexOf('@')); 
+  // let products = await Product.find().where({ owner: name });
+  // console.log(name);
+  // console.log(email);
+  // console.log(products);
+  // if (products.length > 0) {
+  //   res.send({
+  //     message: products,
+  //   });
+  // } else {
+  //   console.log("wrong email");
+  // }
+});
+
 exports.getProductPage = catchAsync(async (req, res, next) => {
   //get operation
   let id = req.params.id;

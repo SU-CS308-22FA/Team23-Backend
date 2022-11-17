@@ -7,6 +7,7 @@ const Product = require("../models/product.model");
 router.post("/upload", upload.single("image"), productController.uploadImage);
 
 router.get("/test", productController.getProducts);
+router.get("/team/:id", productController.getTeamProducts);
 
 router.put(
   "/update/:id",
