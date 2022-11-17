@@ -14,5 +14,6 @@ router.put(
   productController.updateImage
 );
 router.get("/productPage/:id", productController.getProductPage);
+router.get("/search/:searchQuery", productController.search);
 
 module.exports = router;
