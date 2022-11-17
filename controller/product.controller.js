@@ -102,7 +102,7 @@ exports.getProductPage = catchAsync(async (req, res, next) => {
   let id = req.params.id;
   console.log(id);
 
-  let product = await Product.find().where({ id: id });
+  let product = await Product.find().where({ _id: id });
   //console.log(users);
   if (product.length > 0) {
     res.send({
