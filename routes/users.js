@@ -7,7 +7,7 @@ router.post("/signup", userController.signup);
 router.post("/signin", userController.signin);
 router.get("/profile/:email", userController.profile);
 router.put("/update", userController.update);
-
 router.delete("/delete", userController.delete);
+router.get("/team/:email", userController.team);
 
 module.exports = router;
