@@ -63,8 +63,9 @@ exports.uploadImage = catchAsync(async (req, res, next) => {
 
 exports.updateImage = catchAsync(async (req, res, next) => {
   try {
-    let product = await Product.findById(req.params.id);
-    console.log(product);
+    let id = req.params.id;
+    console.log(id);
+    let product = await Product.find().where({ _id: id });
     // Delete image from cloudinary
     await cloudinary.uploader.destroy(product.cloudinary_id);
     // Upload image to cloudinary
@@ -75,10 +76,21 @@ exports.updateImage = catchAsync(async (req, res, next) => {
     const data = {
       image: result?.secure_url || product.image,
       cloudinary_id: result?.public_id || product.cloudinary_id,
+      type: req.body.type || product.type,
+      name: req.body.name || product.name,
+      owner: req.body.owner || product.owner,
     };
-    product = await Product.findByIdAndUpdate(req.params.id, data, {
-      new: true,
-    });
+
+    // let query = { email: email };
+    // let newValue = { $set: { password: newPassword } };
+
+    // userModel.updateOne(query, newValue, () => {
+    //   console.log(query, newValue);
+
+    //   console.log("1 document updated");
+    // });
+
+    product = await Product.findByIdAndUpdate(req.params.id, data, {});
     res.json(product);
   } catch (err) {
     console.log(err);
@@ -154,4 +166,4 @@ exports.search = catchAsync(async (req, res, next) => {
   } else {
     console.log("no product");
   }
-})
+});
