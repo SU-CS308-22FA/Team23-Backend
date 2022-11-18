@@ -66,9 +66,6 @@ exports.updateImage = catchAsync(async (req, res, next) => {
     let id = req.params.id;
     console.log(id);
     let product = await Product.find().where({ _id: id });
-    // Delete image from cloudinary
-    await cloudinary.uploader.destroy(product.cloudinary_id);
-    // Upload image to cloudinary
     let result;
     if (req.file) {
       result = await cloudinary.uploader.upload(req.file.path);
@@ -81,16 +78,7 @@ exports.updateImage = catchAsync(async (req, res, next) => {
       owner: req.body.owner || product.owner,
     };
 
-    // let query = { email: email };
-    // let newValue = { $set: { password: newPassword } };
-
-    // userModel.updateOne(query, newValue, () => {
-    //   console.log(query, newValue);
-
-    //   console.log("1 document updated");
-    // });
-
-    product = await Product.findByIdAndUpdate(req.params.id, data, {});
+    product = await Product.findByIdAndUpdate(id, data, {});
     res.json(product);
   } catch (err) {
     console.log(err);
@@ -105,7 +93,7 @@ exports.getProducts = catchAsync(async (req, res, next) => {
       message: products,
     });
   } else {
-    console.log("wrong email");
+    console.log("error");
   }
 });
 
@@ -125,7 +113,7 @@ exports.getTeamProducts = catchAsync(async (req, res, next) => {
     console.log("wrong email");
   }
   // let email = req.params.id;
-  // let name = email.substr(0, email.indexOf('@')); 
+  // let name = email.substr(0, email.indexOf('@'));
   // let products = await Product.find().where({ owner: name });
   // console.log(name);
   // console.log(email);
@@ -157,8 +145,16 @@ exports.getProductPage = catchAsync(async (req, res, next) => {
 
 exports.search = catchAsync(async (req, res, next) => {
   let search1 = req.params.searchQuery;
-  let products = await Product.find({ $text: { $search: search1 } });
-
+  // let products = await Product.find({ "$text": { "$search": search1 } });
+  let products = await Product.find({
+    "$or": [{
+      "type": new RegExp(search1, 'i')
+    }, {
+      "name": new RegExp(search1, 'i')
+    }, {
+      "owner": new RegExp(search1, 'i')
+    }]
+  });
   if (products.length > 0) {
     res.send({
       message: products,
