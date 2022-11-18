@@ -19,5 +19,5 @@ const productSchema = new Schema({
   duration: Number,
   price: Number,
 });
-
+productSchema.index({ name: "text", type: "text", owner: "text" });
 module.exports = mongoose.model("Product", productSchema);
