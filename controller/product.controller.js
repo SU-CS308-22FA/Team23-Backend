@@ -25,8 +25,6 @@ exports.uploadImage = catchAsync(async (req, res, next) => {
       console.log(query, newValue);
     });
 
-    let currentDate = Date.now();
-    let duration = 604800000;
     let product = new Product({
       name: req.body.name,
       owner: req.body.owner,
@@ -35,8 +33,8 @@ exports.uploadImage = catchAsync(async (req, res, next) => {
       cloudinary_id: result.public_id,
       _id: myId,
       sold: false,
-      start_date: currentDate,
-      duration: duration,
+      start_date: req.body.currentDate,
+      duration: req.body.duration,
       price: req.body.price,
     });
     // Save user
@@ -147,13 +145,17 @@ exports.search = catchAsync(async (req, res, next) => {
   let search1 = req.params.searchQuery;
   // let products = await Product.find({ "$text": { "$search": search1 } });
   let products = await Product.find({
-    "$or": [{
-      "type": new RegExp(search1, 'i')
-    }, {
-      "name": new RegExp(search1, 'i')
-    }, {
-      "owner": new RegExp(search1, 'i')
-    }]
+    $or: [
+      {
+        type: new RegExp(search1, "i"),
+      },
+      {
+        name: new RegExp(search1, "i"),
+      },
+      {
+        owner: new RegExp(search1, "i"),
+      },
+    ],
   });
   if (products.length > 0) {
     res.send({
