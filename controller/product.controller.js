@@ -147,17 +147,17 @@ exports.search = catchAsync(async (req, res, next) => {
   let products = await Product.find({
     $or: [
       {
-        type: new RegExp(search1, "i"),
+        type: new RegExp('^' + search1, "i"),
       },
       {
-        name: new RegExp(search1, "i"),
+        name: new RegExp('^' + search1, "i"),
       },
       {
-        owner: new RegExp(search1, "i"),
+        owner: new RegExp('^' + search1, "i"),
       },
     ],
   });
-  if (products.length > 0) {
+  if (products.length >= 0) {
     res.send({
       message: products,
     });
