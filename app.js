@@ -22,7 +22,9 @@ var app = express();
 const corsOpts = {
   origin: '*',
 
-  methods: ['GET', 'POST', 'DELETE', 'UPDATE'],
+
+  methods: ["GET", "POST", "DELETE", "PUT"],
+
 
   allowedHeaders: ['Content-Type', 'Access-Control-Allow-Origin'],
 };
