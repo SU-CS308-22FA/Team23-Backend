@@ -99,7 +99,10 @@ exports.getTeamProducts = catchAsync(async (req, res, next) => {
   let email = req.params.id;
   let user = await userModel.find().where({ email: email });
   let name = user[0].name;
-  let products = await Product.find().where({ owner: name });
+
+  const teamName = email.substr(0, email.indexOf('@'));
+
+  let products = await Product.find().where({ owner: teamName });
   console.log(name);
   console.log(email);
   console.log(products);
@@ -176,8 +179,9 @@ exports.delete = catchAsync(async (req, res, next) => {
 
     let query = { _id: id };
 
-     Product.deleteOne(query, () => {
-     console.log(query);});
+    Product.deleteOne(query, () => {
+      console.log(query);
+    });
 
     // //   console.log('1 document updated');
     // // console.log(product);
