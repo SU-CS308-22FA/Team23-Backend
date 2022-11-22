@@ -98,14 +98,13 @@ exports.getProducts = catchAsync(async (req, res, next) => {
 exports.getTeamProducts = catchAsync(async (req, res, next) => {
   let email = req.params.id;
   let user = await userModel.find().where({ email: email });
-  let name = user[0].name;
 
-  const teamName = email.substr(0, email.indexOf('@'));
+  var obj_ids = user[0].products.map(function(id) { return ObjectId(id); });
+  let products = await Product.find({_id: {$in: obj_ids}});
 
-  let products = await Product.find().where({ owner: teamName });
-  console.log(name);
-  console.log(email);
-  console.log(products);
+
+ 
+ 
   if (products.length > 0) {
     res.send({
       message: products,
