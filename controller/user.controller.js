@@ -32,7 +32,6 @@ exports.signup = catchAsync(async (req, res, next) => {
           redirectURL: '/signin',
           message: 'data inserted',
         });
-        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         const DOMAIN = 'sandbox48645b44d8eb4529a6aed16a5240784b.mailgun.org';
         const APIKEY = 'ad03f06d58ebea0a033d786965db53a8-2de3d545-a28c2796';
@@ -44,13 +43,12 @@ exports.signup = catchAsync(async (req, res, next) => {
           from: 'Excited User <me@samples.mailgun.org>',
           to: newUser.email,
           subject: "MAÇTANA HOŞGELDİNİZ!",
-          text: 'MAÇTANA HOŞGELDİNİZ!',
+          text: 'MAÇTANA HOŞGELDİNİZ!\nHesabınız başarılı bir şekilde oluşturuldu.',
         };
         mg.messages().send(data, function (error, body) {
           console.log(body);
         });
 
-        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       }
     });
   } else {
