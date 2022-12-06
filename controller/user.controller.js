@@ -4,7 +4,6 @@ let mongoose = require('mongoose');
 let auth = require('../controller/auth');
 let bcrypt = require('bcryptjs');
 const { Schema } = mongoose;
-
 const { MongoClient, MongoGridFSChunkError } = require('mongodb');
 const userModel = require('../models/user.model');
 const teamModel = require('../models/team.model');
@@ -32,7 +31,6 @@ exports.signup = catchAsync(async (req, res, next) => {
           redirectURL: '/signin',
           message: 'data inserted',
         });
-
         const DOMAIN = 'sandbox48645b44d8eb4529a6aed16a5240784b.mailgun.org';
         const APIKEY = 'ad03f06d58ebea0a033d786965db53a8-2de3d545-a28c2796';
         const mg = mailgun({
@@ -62,7 +60,6 @@ exports.signin = catchAsync(async (req, res, next) => {
 
   let users = await userModel.find().where({ email: email });
   if (users.length > 0) {
-    // let comparisonResult = await bcrypt.compare(password, users[0].password);
     console.log(password, users[0].password);
     let comparisonResult = password == users[0].password ? true : false;
     if (comparisonResult) {
@@ -73,10 +70,6 @@ exports.signin = catchAsync(async (req, res, next) => {
         message: 'correct email',
       });
     } else {
-      // res.send({
-      //   redirectURL: "/",
-      //   message: "wrong password",
-      // });
       console.log('wrong password');
     }
   } else {
@@ -84,7 +77,7 @@ exports.signin = catchAsync(async (req, res, next) => {
   }
 });
 
-exports.profile = catchAsync(async (req, res, next) => {
+exports.getUserInfo = catchAsync(async (req, res, next) => {
   //get operation
   let email = req.params.email;
   console.log(email);
@@ -125,17 +118,6 @@ exports.update = catchAsync(async (req, res, next) => {
   } else {
     console.log('wrong email');
   }
-
-  // let newPassword = await bcrypt.hash(req.body.newpassword, 12);
-
-  // let users = await userModel.find().where({ email: email });
-  // if (users.length > 0) {
-  //   console.log(oldPassword, users[0].password);
-  //   let comparisonResult = await bcrypt.compare(oldPassword, users[0].password);
-  //   console.log(comparisonResult);
-  // } else {
-  //   console.log("wrong email");
-  // }
 });
 
 exports.delete = catchAsync(async (req, res, next) => {
@@ -156,7 +138,7 @@ exports.delete = catchAsync(async (req, res, next) => {
   }
 });
 
-exports.team = catchAsync(async (req, res, next) => {
+exports.getTeamData = catchAsync(async (req, res, next) => {
   let email = req.params.email;
 
   let user = await userModel.find().where({ email: email });

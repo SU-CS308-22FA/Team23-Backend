@@ -5,9 +5,9 @@ let userController = require("../controller/user.controller");
 
 router.post("/signup", userController.signup);
 router.post("/signin", userController.signin);
-router.get("/profile/:email", userController.profile);
+router.get("/profile/:email", userController.getUserInfo);
 router.put("/update", userController.update);
 router.delete("/delete", userController.delete);
-router.get("/team/:email", userController.team);
+router.get("/team/:email", userController.getTeamData);
 
 module.exports = router;
