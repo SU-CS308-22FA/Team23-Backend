@@ -6,52 +6,32 @@ if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
 
-// const productSchema = require("../models/product.model");
-// const userSchema = require("../models/user.model");
-// const auctionSchema = require("../models/auction.model");
-
 const userSchema = new Schema({
   name: String,
   lastname: String,
   age: Number,
   team: String,
   email: String,
-  // {
-  //   type: String,
-  //   required: true,
-  //   unique: true,
-  //   lowercase: true,
-  //   validate: (value) => {
-  //     return validator.isEmail(value);
-  //   },
-  // },
   password: String,
+  status: Boolean,
   products: [String],
+  puchased: [String],
+  bids: [String]
 });
 
 const productSchema = new Schema({
-  //auction id
+  _id: String,
   type: String,
   name: String,
   owner: String,
   image: String,
   cloudinary_id: String,
-  _id: String,
   sold: Boolean,
+  open: Boolean,
   start_date: Number,
   duration: Number,
   price: Number,
-});
-
-const auctionSchema = new Schema({
-  _id: String,
-  product_id: String,
-  bids: [Number],
-  duration: Number,
-  start_date: Number,
-  finish_date: Number,
-  base_price: Number,
-  open: Boolean,
+  bids: [String]
 });
 
 const teamSchema = new Schema({
@@ -59,13 +39,21 @@ const teamSchema = new Schema({
   logo: String
 });
 
+const bidSchema = new Schema({
+  offer: Number,
+  bidderId: String,
+  productId: String,
+  date: Number
+});
+
+
 async function run() {
   // Create a separate connection and register a model on it...
   const conn = mongoose.createConnection();
   conn.model("User", userSchema);
   conn.model("Product", productSchema);
-  conn.model("Auction", auctionSchema);
   conn.model("Team", teamSchema);
+  conn.model("Bid", bidSchema);
 
   const dbURL =
     process.env.DB_URL ||

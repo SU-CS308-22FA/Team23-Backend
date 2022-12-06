@@ -36,6 +36,8 @@ exports.uploadItem = catchAsync(async (req, res, next) => {
       start_date: req.body.currentDate,
       duration: req.body.duration,
       price: req.body.price,
+      open: true,
+      bids: []
     });
     // Save user
     await product.save();
@@ -144,20 +146,13 @@ exports.delete = catchAsync(async (req, res, next) => {
   try {
     let id = req.params.id;
     console.log(id);
-
     let product = await Product.find().where({ _id: id });
-
-
     let query = { _id: id };
 
     Product.deleteOne(query, () => {
       console.log(query);
     });
 
-    // //   console.log('1 document updated');
-    // // console.log(product);
-    // // Product.deleteOne({ _id: id });
-    //product = await Product.deleteOne(product);
   } catch (err) {
     console.log(err);
   }
