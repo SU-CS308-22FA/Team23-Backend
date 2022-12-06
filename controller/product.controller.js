@@ -10,7 +10,7 @@ const userModel = require('../models/user.model');
 const catchAsync = require('./../utils/catchAsync');
 const { ObjectId } = require('mongodb');
 
-exports.uploadImage = catchAsync(async (req, res, next) => {
+exports.uploadItem = catchAsync(async (req, res, next) => {
   try {
     // Upload image to cloudinary
     const result = await cloudinary.uploader.upload(req.file.path);
@@ -46,20 +46,7 @@ exports.uploadImage = catchAsync(async (req, res, next) => {
   }
 });
 
-// const productSchema = new Schema({
-//   auction id
-//   type: String,
-//   name: String,
-//   owner: String,
-//   image: String,
-//   cloudinary_id: String,
-//   _id: String,
-//   sold: Boolean,
-//   duration: Number,
-//   base_price: Number,
-// });
-
-exports.updateImage = catchAsync(async (req, res, next) => {
+exports.updateItem = catchAsync(async (req, res, next) => {
   try {
     let id = req.params.id;
     console.log(id);
@@ -82,6 +69,7 @@ exports.updateImage = catchAsync(async (req, res, next) => {
     console.log(err);
   }
 });
+
 exports.getProducts = catchAsync(async (req, res, next) => {
   console.log('tes');
   let products = await Product.find().sort({ _id: 1 });
@@ -101,9 +89,6 @@ exports.getTeamProducts = catchAsync(async (req, res, next) => {
 
   var obj_ids = user[0].products.map(function(id) { return ObjectId(id); });
   let products = await Product.find({_id: {$in: obj_ids}});
-
-
- 
  
   if (products.length > 0) {
     res.send({
@@ -112,19 +97,6 @@ exports.getTeamProducts = catchAsync(async (req, res, next) => {
   } else {
     console.log('wrong email');
   }
-  // let email = req.params.id;
-  // let name = email.substr(0, email.indexOf('@'));
-  // let products = await Product.find().where({ owner: name });
-  // console.log(name);
-  // console.log(email);
-  // console.log(products);
-  // if (products.length > 0) {
-  //   res.send({
-  //     message: products,
-  //   });
-  // } else {
-  //   console.log("wrong email");
-  // }
 });
 
 exports.getProductPage = catchAsync(async (req, res, next) => {
