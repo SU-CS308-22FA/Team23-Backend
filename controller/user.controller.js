@@ -20,6 +20,8 @@ exports.signup = catchAsync(async (req, res, next) => {
   newUser.password = req.body.password;
   newUser.products = [];
   newUser.status = true;
+  newUser.purchased = [];
+  newUser.bids = [];
 
   let users = await userModel.find().where({ email: newUser.email });
   if (users.length === 0) {

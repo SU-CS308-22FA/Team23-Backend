@@ -7,17 +7,18 @@ const { Schema } = mongoose;
 // });
 
 const productSchema = new Schema({
-  //auction id
+  _id: String,
   type: String,
   name: String,
   owner: String,
   image: String,
   cloudinary_id: String,
-  _id: String,
   sold: Boolean,
+  open: Boolean,
   start_date: Number,
   duration: Number,
   price: Number,
+  bids: [String]
 });
 productSchema.index({ name: "text", type: "text", owner: "text" });
 module.exports = mongoose.model("Product", productSchema);
