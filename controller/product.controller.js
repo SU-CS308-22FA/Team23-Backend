@@ -9,6 +9,7 @@ const Product = require("../models/product.model");
 const userModel = require("../models/user.model");
 const catchAsync = require("./../utils/catchAsync");
 const { ObjectId } = require("mongodb");
+const product = require("../seed/product");
 
 exports.uploadItem = catchAsync(async (req, res, next) => {
   try {
@@ -74,8 +75,6 @@ exports.updateItem = catchAsync(async (req, res, next) => {
 });
 
 exports.getProducts = catchAsync(async (req, res, next) => {
-
-
   let option = req.params.option;
   console.log(option);
 
@@ -88,18 +87,13 @@ exports.getProducts = catchAsync(async (req, res, next) => {
         message: products,
       });
     } else {
-      console.log('error');
+      console.log("error");
     }
-  }
-  else if (option == 10) {
+  } else if (option == 10) {
     //Increasing Price
-
-  }
-  else if (option == 20) {
+  } else if (option == 20) {
     //Decreasing Price
-
-  }
-  else if (option == 30) {
+  } else if (option == 30) {
     //Ending Soon
     let products = await Product.find().sort({ start_date: 1 });
     //console.log(users);
@@ -108,11 +102,9 @@ exports.getProducts = catchAsync(async (req, res, next) => {
         message: products,
       });
     } else {
-      console.log('error');
+      console.log("error");
     }
-
-  }
-  else if (option == 40) {
+  } else if (option == 40) {
     //Newly Listed
     let products = await Product.find().sort({ start_date: -1 });
     //console.log(users);
@@ -121,7 +113,7 @@ exports.getProducts = catchAsync(async (req, res, next) => {
         message: products,
       });
     } else {
-      console.log('error');
+      console.log("error");
     }
   }
 });
@@ -130,7 +122,9 @@ exports.getTeamProducts = catchAsync(async (req, res, next) => {
   let email = req.params.id;
   let user = await userModel.find().where({ email: email });
 
-  var obj_ids = user[0].products.map(function (id) { return ObjectId(id); });
+  var obj_ids = user[0].products.map(function (id) {
+    return ObjectId(id);
+  });
   let products = await Product.find({ _id: { $in: obj_ids } });
 
   if (products.length > 0) {
@@ -139,6 +133,29 @@ exports.getTeamProducts = catchAsync(async (req, res, next) => {
     });
   } else {
     console.log("wrong email");
+  }
+});
+
+exports.getHotProducts = catchAsync(async (req, res, next) => {
+  let products = await Product.find().where({ open: true });
+  let newLs = [];
+
+  for (let i = 0; i < products.length; i++) {
+    let pop = 0;
+    pop += products[i].price;
+    pop += products[i].bids.length * 300;
+    newLs.push(products[i].toObject());
+    newLs[i].popularity = pop;
+  }
+
+  newLs.sort((a, b) => b.popularity - a.popularity);
+
+  if (products.length > 0) {
+    res.send({
+      message: newLs.slice(0, 3),
+    });
+  } else {
+    console.log("no hot products");
   }
 });
 
