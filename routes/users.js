@@ -9,5 +9,6 @@ router.get("/profile/:email", userController.getUserInfo);
 router.put("/update", userController.update);
 router.delete("/delete", userController.delete);
 router.get("/team/:email", userController.getTeamData);
+router.get("/statistics/:data", userController.getTeamStatistics);
 
 module.exports = router;
