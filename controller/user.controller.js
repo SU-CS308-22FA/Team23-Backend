@@ -5,6 +5,7 @@ let auth = require("../controller/auth");
 let bcrypt = require("bcryptjs");
 const { Schema } = mongoose;
 const { MongoClient, MongoGridFSChunkError, ObjectId } = require("mongodb");
+
 const userModel = require("../models/user.model");
 const teamModel = require("../models/team.model");
 const catchAsync = require("./../utils/catchAsync");
@@ -156,4 +157,16 @@ exports.getTeamData = catchAsync(async (req, res, next) => {
   } else {
     console.log("not admin");
   }
+});
+
+exports.getTeamStatistics = catchAsync(async (req, res, next) => {
+  let data = req.params.data;
+  console.log(data);
+  let begin = data.substr(0, data.indexOf("+"));
+  let end = data.substr(
+    data.indexOf("+") + 1,
+    data.indexOf("-") - data.indexOf("+") - 1
+  );
+  let email = data.substr(data.indexOf("-") + 1, data.length);
+  console.log(begin, ",", end, ",", email);
 });
