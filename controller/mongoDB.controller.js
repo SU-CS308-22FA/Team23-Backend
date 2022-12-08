@@ -7,6 +7,8 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 const userSchema = new Schema({
+  _id: String,
+  type: String,
   name: String,
   lastname: String,
   age: Number,
@@ -15,8 +17,8 @@ const userSchema = new Schema({
   password: String,
   status: Boolean,
   products: [String],
-  puchased: [String],
-  bids: [String]
+  purchased: [String],
+  bids: [String],
 });
 
 const productSchema = new Schema({
@@ -31,21 +33,23 @@ const productSchema = new Schema({
   start_date: Number,
   duration: Number,
   price: Number,
-  bids: [String]
+  basePrice: Number,
+  bids: [String],
 });
 
 const teamSchema = new Schema({
   team: String,
-  logo: String
+  logo: String,
+  name: String,
 });
 
 const bidSchema = new Schema({
+  _id: String,
   offer: Number,
   bidderId: String,
   productId: String,
-  date: Number
+  date: Number,
 });
-
 
 async function run() {
   // Create a separate connection and register a model on it...

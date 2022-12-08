@@ -4,7 +4,8 @@ let mongoose = require("mongoose");
 let auth = require("../controller/auth");
 let bcrypt = require("bcryptjs");
 const { Schema } = mongoose;
-const { MongoClient, MongoGridFSChunkError } = require("mongodb");
+const { MongoClient, MongoGridFSChunkError, ObjectId } = require("mongodb");
+
 const userModel = require("../models/user.model");
 const teamModel = require("../models/team.model");
 const catchAsync = require("./../utils/catchAsync");
@@ -16,12 +17,14 @@ exports.signup = catchAsync(async (req, res, next) => {
   newUser.name = req.body.name;
   newUser.lastname = req.body.lastname;
   newUser.email = req.body.email;
+  newUser.type = "fan";
   // newUser.password = await bcrypt.hash(req.body.password, 12);
   newUser.password = req.body.password;
   newUser.products = [];
   newUser.status = true;
   newUser.purchased = [];
   newUser.bids = [];
+  newUser._id = new ObjectId();
 
   let users = await userModel.find().where({ email: newUser.email });
   if (users.length === 0) {
