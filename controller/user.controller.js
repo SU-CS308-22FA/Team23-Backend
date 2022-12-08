@@ -1,15 +1,15 @@
-const express = require('express');
+const express = require("express");
 var router = express.Router();
-let mongoose = require('mongoose');
-let auth = require('../controller/auth');
-let bcrypt = require('bcryptjs');
+let mongoose = require("mongoose");
+let auth = require("../controller/auth");
+let bcrypt = require("bcryptjs");
 const { Schema } = mongoose;
-const { MongoClient, MongoGridFSChunkError } = require('mongodb');
-const userModel = require('../models/user.model');
-const teamModel = require('../models/team.model');
-const catchAsync = require('./../utils/catchAsync');
+const { MongoClient, MongoGridFSChunkError } = require("mongodb");
+const userModel = require("../models/user.model");
+const teamModel = require("../models/team.model");
+const catchAsync = require("./../utils/catchAsync");
 
-const mailgun = require('mailgun-js');
+const mailgun = require("mailgun-js");
 
 exports.signup = catchAsync(async (req, res, next) => {
   var newUser = new userModel();
@@ -30,29 +30,28 @@ exports.signup = catchAsync(async (req, res, next) => {
         console.log(error);
       } else {
         res.send({
-          redirectURL: '/signin',
-          message: 'data inserted',
+          redirectURL: "/signin",
+          message: "data inserted",
         });
-        const DOMAIN = 'sandbox48645b44d8eb4529a6aed16a5240784b.mailgun.org';
-        const APIKEY = 'ad03f06d58ebea0a033d786965db53a8-2de3d545-a28c2796';
+        const DOMAIN = "sandbox48645b44d8eb4529a6aed16a5240784b.mailgun.org";
+        const APIKEY = "ad03f06d58ebea0a033d786965db53a8-2de3d545-a28c2796";
         const mg = mailgun({
           apiKey: APIKEY,
           domain: DOMAIN,
         });
         const data = {
-          from: 'Excited User <me@samples.mailgun.org>',
+          from: "Excited User <me@samples.mailgun.org>",
           to: newUser.email,
           subject: "MAÇTANA HOŞGELDİNİZ!",
-          text: 'MAÇTANA HOŞGELDİNİZ!\nHesabınız başarılı bir şekilde oluşturuldu.',
+          text: "MAÇTANA HOŞGELDİNİZ!\nHesabınız başarılı bir şekilde oluşturuldu.",
         };
         mg.messages().send(data, function (error, body) {
           console.log(body);
         });
-
       }
     });
   } else {
-    res.send({ message: 'Rejected' });
+    res.send({ message: "Rejected" });
   }
 });
 
@@ -66,16 +65,16 @@ exports.signin = catchAsync(async (req, res, next) => {
     let comparisonResult = password == users[0].password ? true : false;
     if (comparisonResult) {
       let token = auth.generateToken(users[0]);
-      res.cookie('auth_token', token);
+      res.cookie("auth_token", token);
       res.send({
-        redirectURL: '/',
-        message: 'correct email',
+        redirectURL: "/",
+        message: "correct email",
       });
     } else {
-      console.log('wrong password');
+      console.log("wrong password");
     }
   } else {
-    console.log('wrong email');
+    console.log("wrong email");
   }
 });
 
@@ -83,7 +82,7 @@ exports.getUserInfo = catchAsync(async (req, res, next) => {
   //get operation
   let email = req.params.email;
   console.log(email);
-  console.log('profile');
+  console.log("profile");
 
   let users = await userModel.find().where({ email: email });
   //console.log(users);
@@ -92,7 +91,7 @@ exports.getUserInfo = catchAsync(async (req, res, next) => {
       message: users,
     });
   } else {
-    console.log('wrong email');
+    console.log("wrong email");
   }
 });
 
@@ -112,13 +111,13 @@ exports.update = catchAsync(async (req, res, next) => {
       userModel.updateOne(query, newValue, () => {
         console.log(query, newValue);
 
-        console.log('1 document updated');
+        console.log("1 document updated");
       });
     } else {
-      console.log('wrong password');
+      console.log("wrong password");
     }
   } else {
-    console.log('wrong email');
+    console.log("wrong email");
   }
 });
 
@@ -133,10 +132,10 @@ exports.delete = catchAsync(async (req, res, next) => {
     userModel.deleteOne(query, () => {
       console.log(query, newValue);
 
-      console.log('1 document updated');
+      console.log("1 document updated");
     });
   } else {
-    console.log('wrong email');
+    console.log("wrong email");
   }
 });
 
@@ -153,6 +152,18 @@ exports.getTeamData = catchAsync(async (req, res, next) => {
       message: message,
     });
   } else {
-    console.log('not admin');
+    console.log("not admin");
   }
+});
+
+exports.getTeamStatistics = catchAsync(async (req, res, next) => {
+  let data = req.params.data;
+  console.log(data);
+  let begin = data.substr(0, data.indexOf("+"));
+  let end = data.substr(
+    data.indexOf("+") + 1,
+    data.indexOf("-") - data.indexOf("+") - 1
+  );
+  let email = data.substr(data.indexOf("-") + 1, data.length);
+  console.log(begin, ",", end, ",", email);
 });
