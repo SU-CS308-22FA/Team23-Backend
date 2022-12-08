@@ -18,7 +18,8 @@ const productSchema = new Schema({
   start_date: Number,
   duration: Number,
   price: Number,
-  bids: [String]
+  basePrice: Number,
+  bids: [String],
 });
 productSchema.index({ name: "text", type: "text", owner: "text" });
 module.exports = mongoose.model("Product", productSchema);

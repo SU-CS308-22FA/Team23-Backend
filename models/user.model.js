@@ -3,6 +3,8 @@ const { Schema } = mongoose;
 let validator = require("validator");
 
 const userSchema = new Schema({
+  _id: String,
+  type: String,
   name: String,
   lastname: String,
   age: Number,
@@ -20,8 +22,8 @@ const userSchema = new Schema({
   password: String,
   status: Boolean,
   products: [String],
-  puchased: [String],
-  bids: [String]
+  purchased: [String],
+  bids: [String],
 });
 
 module.exports = mongoose.model("User", userSchema);
