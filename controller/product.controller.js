@@ -1,14 +1,14 @@
-const express = require('express');
+const express = require("express");
 var router = express.Router();
-let mongoose = require('mongoose');
+let mongoose = require("mongoose");
 const { Schema } = mongoose;
-const cloudinary = require('../utils/cloudinary');
-const upload = require('../utils/multer');
-const Product = require('../models/product.model');
+const cloudinary = require("../utils/cloudinary");
+const upload = require("../utils/multer");
+const Product = require("../models/product.model");
 
-const userModel = require('../models/user.model');
-const catchAsync = require('./../utils/catchAsync');
-const { ObjectId } = require('mongodb');
+const userModel = require("../models/user.model");
+const catchAsync = require("./../utils/catchAsync");
+const { ObjectId } = require("mongodb");
 
 exports.uploadItem = catchAsync(async (req, res, next) => {
   try {
@@ -36,8 +36,9 @@ exports.uploadItem = catchAsync(async (req, res, next) => {
       start_date: req.body.currentDate,
       duration: req.body.duration,
       price: req.body.price,
+      basePrice: req.body.price,
       open: true,
-      bids: []
+      bids: [],
     });
     // Save user
     await product.save();
@@ -73,15 +74,15 @@ exports.updateItem = catchAsync(async (req, res, next) => {
 });
 
 exports.getProducts = catchAsync(async (req, res, next) => {
-  console.log('tes');
-  let products = await Product.find().sort({ _id: 1 });
+  console.log("tes");
+  let products = await Product.find();
   //console.log(users);
   if (products.length > 0) {
     res.send({
       message: products,
     });
   } else {
-    console.log('error');
+    console.log("error");
   }
 });
 
@@ -89,15 +90,17 @@ exports.getTeamProducts = catchAsync(async (req, res, next) => {
   let email = req.params.id;
   let user = await userModel.find().where({ email: email });
 
-  var obj_ids = user[0].products.map(function(id) { return ObjectId(id); });
-  let products = await Product.find({_id: {$in: obj_ids}});
- 
+  var obj_ids = user[0].products.map(function (id) {
+    return ObjectId(id);
+  });
+
+  let products = await Product.find({ _id: { $in: obj_ids } });
   if (products.length > 0) {
     res.send({
       message: products,
     });
   } else {
-    console.log('wrong email');
+    console.log("wrong email");
   }
 });
 
@@ -113,7 +116,7 @@ exports.getProductPage = catchAsync(async (req, res, next) => {
       message: product,
     });
   } else {
-    console.log('error');
+    console.log("error");
   }
 });
 
@@ -123,13 +126,13 @@ exports.search = catchAsync(async (req, res, next) => {
   let products = await Product.find({
     $or: [
       {
-        type: new RegExp('^' + search1, 'i'),
+        type: new RegExp("^" + search1, "i"),
       },
       {
-        name: new RegExp('^' + search1, 'i'),
+        name: new RegExp("^" + search1, "i"),
       },
       {
-        owner: new RegExp('^' + search1, 'i'),
+        owner: new RegExp("^" + search1, "i"),
       },
     ],
   });
@@ -138,7 +141,7 @@ exports.search = catchAsync(async (req, res, next) => {
       message: products,
     });
   } else {
-    console.log('no product');
+    console.log("no product");
   }
 });
 
@@ -152,7 +155,6 @@ exports.delete = catchAsync(async (req, res, next) => {
     Product.deleteOne(query, () => {
       console.log(query);
     });
-
   } catch (err) {
     console.log(err);
   }
