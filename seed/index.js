@@ -10,6 +10,11 @@ const teams = require("./teams");
 const { ObjectId } = require("mongodb");
 const { where } = require("../models/bid.model");
 
+const NUM_OF_PRODUCTS = 10; // * 25
+const MAX_NUM_OF_BIDS = 10;
+const FIRST_AUCTION = 60; // start day of a first auction
+const AUCTION_DURATION = 7; //days
+
 mongoose.connect("mongodb+srv://app:vbSczxBpNmkX5a4q@clustertff.h8qujjg.mongodb.net/?retryWrites=true&w=majority", {
   dbName: "tff-project",
 });
@@ -21,25 +26,27 @@ db.once("open", () => {
   console.log("Database connected");
 });
 
+const daysToMilisecond = (days) => {
+  return days * 24 * 60 * 60 * 1000;
+};
+
 const randomNumberGenerator = (min, max) => {
   return Math.floor(Math.random() * (max - min) + min);
 };
 
 const randomPrice = () => {
-  const a = randomNumberGenerator(1, 20);
+  const a = randomNumberGenerator(1, 35);
   return 50 * a + 100;
 };
 
 function shuffle(array) {
   let currentIndex = array.length,
     randomIndex;
-
   // While there remain elements to shuffle.
   while (currentIndex != 0) {
     // Pick a remaining element.
     randomIndex = Math.floor(Math.random() * currentIndex);
     currentIndex--;
-
     // And swap it with the current element.
     [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
   }
@@ -65,7 +72,7 @@ const updatePurchasedList = async () => {
 };
 
 const bidGenerator = async (id, startDate, startPrice) => {
-  const randomNum = randomNumberGenerator(0, 8);
+  const randomNum = randomNumberGenerator(0, MAX_NUM_OF_BIDS);
   let prices = [];
   let times = [];
   for (let i = 0; i < randomNum; i++) {
@@ -157,63 +164,65 @@ const seedDB = async () => {
   await Bid.deleteMany({});
 
   for (let i = 0; i < products.length; i++) {
-    times.push(randomNumberGenerator(Date.now() - 1209600000, Date.now()));
+    times.push(randomNumberGenerator(Date.now() - daysToMilisecond(FIRST_AUCTION), Date.now()));
   }
 
   times.sort();
   console.log(times);
 
-  for (let i = 0; i < products.length; i++) {
-    let id = new ObjectId();
-    let start = times[i];
-    let price = randomPrice();
-    let sold = false;
-    let open = true;
+  for (let a = 0; a < NUM_OF_PRODUCTS; a++) {
+    for (let i = 0; i < products.length; i++) {
+      let id = new ObjectId();
+      let start = times[i];
+      let price = randomPrice();
+      let sold = false;
+      let open = true;
 
-    let bids = await bidGenerator(id, start, price);
+      let bids = await bidGenerator(id, start, price);
 
-    if (bids.length === 0) {
-      if (start < Date.now() - 604800000) {
-        open = false;
+      if (bids.length === 0) {
+        if (start < Date.now() - daysToMilisecond(AUCTION_DURATION)) {
+          open = false;
+        }
+      } else {
+        if (start < Date.now() - daysToMilisecond(AUCTION_DURATION)) {
+          open = false;
+          sold = true;
+        }
       }
-    } else {
-      if (start < Date.now() - 604800000) {
-        open = false;
-        sold = true;
+
+      let team = await User.find().where({ name: products[i].owner });
+      let teamProducts = team[0].products;
+      teamProducts.push(id);
+
+      let query = { name: products[i].owner };
+      let newValue = { $set: { products: teamProducts } };
+      User.updateOne(query, newValue, () => {});
+
+      let lastBid = await Bid.find().where({ _id: bids[bids.length - 1] });
+      if (lastBid.length > 0) {
+        lastPrice = lastBid[0].offer;
+      } else {
+        lastPrice = price;
       }
+
+      const product = new Product({
+        _id: id,
+        type: `${products[i].type}`,
+        name: `${products[i].name}`,
+        owner: `${products[i].owner}`,
+        image: `${products[i].image}`,
+        cloudinary_id: "",
+        sold: sold,
+        open: open,
+        start_date: start,
+        duration: 604800000,
+        price: lastPrice,
+        basePrice: price,
+        bids: bids,
+      });
+      await product.save();
     }
-
-    let team = await User.find().where({ name: products[i].owner });
-    let teamProducts = team[0].products;
-    teamProducts.push(id);
-
-    let query = { name: products[i].owner };
-    let newValue = { $set: { products: teamProducts } };
-    User.updateOne(query, newValue, () => {});
-
-    let lastBid = await Bid.find().where({ _id: bids[bids.length - 1] });
-    if (lastBid.length > 0) {
-      lastPrice = lastBid[0].offer;
-    } else {
-      lastPrice = price;
-    }
-
-    const product = new Product({
-      _id: id,
-      type: `${products[i].type}`,
-      name: `${products[i].name}`,
-      owner: `${products[i].owner}`,
-      image: `${products[i].image}`,
-      cloudinary_id: "",
-      sold: sold,
-      open: open,
-      start_date: start,
-      duration: 604800000,
-      price: lastPrice,
-      basePrice: price,
-      bids: bids,
-    });
-    await product.save();
   }
 
   await updatePurchasedList();
