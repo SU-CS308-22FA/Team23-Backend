@@ -9,6 +9,7 @@ const { MongoClient, MongoGridFSChunkError, ObjectId } = require("mongodb");
 const userModel = require("../models/user.model");
 const teamModel = require("../models/team.model");
 const catchAsync = require("./../utils/catchAsync");
+const productModel = require("../models/product.model");
 
 const mailgun = require("mailgun-js");
 
@@ -160,13 +161,39 @@ exports.getTeamData = catchAsync(async (req, res, next) => {
 });
 
 exports.getTeamStatistics = catchAsync(async (req, res, next) => {
+  const duration = 604800000;
   let data = req.params.data;
-  console.log(data);
+  let sum = 0;
+  let soldItems = [];
+  // console.log(data);
   let begin = data.substr(0, data.indexOf("+"));
   let end = data.substr(
     data.indexOf("+") + 1,
     data.indexOf("-") - data.indexOf("+") - 1
   );
   let email = data.substr(data.indexOf("-") + 1, data.length);
-  console.log(begin, ",", end, ",", email);
+  // console.log(begin, ",", end, ",", email);
+
+  let user = await userModel.find().where({ email: email });
+  let pid = user[0].products;
+
+  let products = await productModel.find().where({
+    _id: { $in: pid },
+    sold: true,
+    start_date: { $gt: begin - duration, $lt: end - duration },
+  });
+  // console.log(products);
+
+  if (products.length > 0) {
+    for (let i = 0; i < products.length; i++) {
+      sum = sum + products[i]["price"];
+      soldItems.push(products[i]);
+    }
+    message = { sum: sum };
+    res.send({ message: sum });
+    console.log(message);
+    // console.log(soldItems, "sum: ", sum);
+  } else {
+    res.send("not found");
+  }
 });
