@@ -241,25 +241,20 @@ exports.getBidHistory = catchAsync(async (req, res, next) => {
   let product = await Product.find().where({ _id: id });
   let msg = await bidModel.find({ _id: { $in: product[0].bids } });
 
+  let newMsg = [];
   for (let i = 0; i < msg.length; i++) {
-    console.log(msg[i]._id);
-    let user = await userModel.find().where({ _id: msg[i]._id });
+    newMsg.push(msg[i].toObject());
+    let user = await userModel.find().where({ _id: newMsg[i].bidderId });
+    let name = user[0].name + " " + user[0].lastname;
 
-    let name = user.name + " " + user.lastname;
+    const date = new Date(newMsg[i].date);
 
-    const date = new Date(msg[i].date);
-
-    msg[i].bidderId = date.toLocaleString();
-
-    //msg[i].name = name;
-    //msg[i].productId = name;
-    msg[i].productId = "Rafi Banana";
-
-    console.log(msg[i]);
+    newMsg[i].date = date.toLocaleString();
+    newMsg[i].name = name;
   }
-  if (msg.length > 0) {
+  if (newMsg.length > 0) {
     res.send({
-      message: msg,
+      message: newMsg,
     });
   } else {
     console.log("error");
