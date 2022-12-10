@@ -12,4 +12,6 @@ router.get('/productPage/:id', productController.getProductPage);
 router.get('/search/:searchQuery', productController.search);
 router.delete('/delete/:id', productController.delete);
 
+router.get('/bidHistory/:id', productController.getBidHistory);
+
 module.exports = router;

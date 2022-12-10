@@ -5,6 +5,7 @@ const { Schema } = mongoose;
 const cloudinary = require("../utils/cloudinary");
 const upload = require("../utils/multer");
 const Product = require("../models/product.model");
+const bidModel = require("../models/bid.model")
 
 const userModel = require("../models/user.model");
 const catchAsync = require("./../utils/catchAsync");
@@ -74,8 +75,6 @@ exports.updateItem = catchAsync(async (req, res, next) => {
 });
 
 exports.getProducts = catchAsync(async (req, res, next) => {
-
-
   let option = req.params.option;
   console.log(option);
 
@@ -93,11 +92,27 @@ exports.getProducts = catchAsync(async (req, res, next) => {
   }
   else if (option == 10) {
     //Increasing Price
-
+    let products = await Product.find().sort({ price: 1 });
+    //console.log(users);
+    if (products.length > 0) {
+      res.send({
+        message: products,
+      });
+    } else {
+      console.log('error');
+    }
   }
   else if (option == 20) {
     //Decreasing Price
-
+    let products = await Product.find().sort({ price: -1 });
+    //console.log(users);
+    if (products.length > 0) {
+      res.send({
+        message: products,
+      });
+    } else {
+      console.log('error');
+    }
   }
   else if (option == 30) {
     //Ending Soon
@@ -127,31 +142,124 @@ exports.getProducts = catchAsync(async (req, res, next) => {
 });
 
 exports.getTeamProducts = catchAsync(async (req, res, next) => {
-  let email = req.params.id;
-  let user = await userModel.find().where({ email: email });
+  let prop = req.params.id;
+  let email = prop.substr(0, prop.indexOf("-"));
+  let option = prop.substr(prop.indexOf("-") + 1);
+  console.log(option);
 
-  var obj_ids = user[0].products.map(function (id) { return ObjectId(id); });
-  let products = await Product.find({ _id: { $in: obj_ids } });
+  if (option == 0) {
+    //none
+    let user = await userModel.find().where({ email: email });
+    var obj_ids = user[0].products.map(function (id) { return ObjectId(id); });
+    let products = await Product.find({ _id: { $in: obj_ids } });
 
-  if (products.length > 0) {
-    res.send({
-      message: products,
-    });
-  } else {
-    console.log("wrong email");
+    if (products.length > 0) {
+      res.send({
+        message: products,
+      });
+    } else {
+      console.log('error');
+    }
+  }
+  else if (option == 10) {
+    //Increasing Price
+    let user = await userModel.find().where({ email: email });
+    var obj_ids = user[0].products.map(function (id) { return ObjectId(id); });
+    let products = await Product.find({ _id: { $in: obj_ids } }).sort({ price: 1 });
+
+    //console.log(users);
+    if (products.length > 0) {
+      res.send({
+        message: products,
+      });
+    } else {
+      console.log('error');
+    }
+  }
+  else if (option == 20) {
+    //Decreasing Price
+    let user = await userModel.find().where({ email: email });
+    var obj_ids = user[0].products.map(function (id) { return ObjectId(id); });
+    let products = await Product.find({ _id: { $in: obj_ids } }).sort({ price: -1 });
+
+    if (products.length > 0) {
+      res.send({
+        message: products,
+      });
+    } else {
+      console.log('error');
+    }
+  }
+  else if (option == 30) {
+    //Ending Soon
+    let user = await userModel.find().where({ email: email });
+    var obj_ids = user[0].products.map(function (id) { return ObjectId(id); });
+    let products = await Product.find({ _id: { $in: obj_ids } }).sort({ start_date: 1 });
+
+    if (products.length > 0) {
+      res.send({
+        message: products,
+      });
+    } else {
+      console.log('error');
+    }
+
+  }
+  else if (option == 40) {
+    //Newly Listed
+    let user = await userModel.find().where({ email: email });
+    var obj_ids = user[0].products.map(function (id) { return ObjectId(id); });
+    let products = await Product.find({ _id: { $in: obj_ids } }).sort({ start_date: -1 });
+
+    if (products.length > 0) {
+      res.send({
+        message: products,
+      });
+    } else {
+      console.log('error');
+    }
   }
 });
 
 exports.getProductPage = catchAsync(async (req, res, next) => {
   //get operation
   let id = req.params.id;
-  console.log(id);
-
   let product = await Product.find().where({ _id: id });
-  //console.log(users);
+
   if (product.length > 0) {
     res.send({
       message: product,
+    });
+  } else {
+    console.log("error");
+  }
+});
+
+exports.getBidHistory = catchAsync(async (req, res, next) => {
+  let id = req.params.id;
+
+  let product = await Product.find().where({ _id: id });
+  let msg = await bidModel.find({ _id: { $in: product[0].bids } });
+
+  for (let i = 0; i < msg.length; i++) {
+    console.log(msg[i]._id);
+    let user = await userModel.find().where({ _id: msg[i]._id });
+
+    let name = user.name + " " + user.lastname;
+
+    const date = new Date(msg[i].date);
+
+    msg[i].bidderId = date.toLocaleString();
+
+    //msg[i].name = name;
+    //msg[i].productId = name;
+    msg[i].productId = "Rafi Banana";
+
+    console.log(msg[i]);
+  }
+  if (msg.length > 0) {
+    res.send({
+      message: msg,
     });
   } else {
     console.log("error");
