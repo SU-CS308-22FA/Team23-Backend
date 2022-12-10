@@ -147,10 +147,11 @@ exports.getTeamProducts = catchAsync(async (req, res, next) => {
   let option = prop.substr(prop.indexOf("-") + 1);
   console.log(option);
 
+  let user = await userModel.find().where({ email: email });
+  var obj_ids = user[0].products.map(function (id) { return ObjectId(id); });
+
   if (option == 0) {
     //none
-    let user = await userModel.find().where({ email: email });
-    var obj_ids = user[0].products.map(function (id) { return ObjectId(id); });
     let products = await Product.find({ _id: { $in: obj_ids } });
 
     if (products.length > 0) {
@@ -163,8 +164,6 @@ exports.getTeamProducts = catchAsync(async (req, res, next) => {
   }
   else if (option == 10) {
     //Increasing Price
-    let user = await userModel.find().where({ email: email });
-    var obj_ids = user[0].products.map(function (id) { return ObjectId(id); });
     let products = await Product.find({ _id: { $in: obj_ids } }).sort({ price: 1 });
 
     //console.log(users);
@@ -178,8 +177,6 @@ exports.getTeamProducts = catchAsync(async (req, res, next) => {
   }
   else if (option == 20) {
     //Decreasing Price
-    let user = await userModel.find().where({ email: email });
-    var obj_ids = user[0].products.map(function (id) { return ObjectId(id); });
     let products = await Product.find({ _id: { $in: obj_ids } }).sort({ price: -1 });
 
     if (products.length > 0) {
@@ -192,8 +189,6 @@ exports.getTeamProducts = catchAsync(async (req, res, next) => {
   }
   else if (option == 30) {
     //Ending Soon
-    let user = await userModel.find().where({ email: email });
-    var obj_ids = user[0].products.map(function (id) { return ObjectId(id); });
     let products = await Product.find({ _id: { $in: obj_ids } }).sort({ start_date: 1 });
 
     if (products.length > 0) {
@@ -207,8 +202,6 @@ exports.getTeamProducts = catchAsync(async (req, res, next) => {
   }
   else if (option == 40) {
     //Newly Listed
-    let user = await userModel.find().where({ email: email });
-    var obj_ids = user[0].products.map(function (id) { return ObjectId(id); });
     let products = await Product.find({ _id: { $in: obj_ids } }).sort({ start_date: -1 });
 
     if (products.length > 0) {
@@ -239,7 +232,7 @@ exports.getBidHistory = catchAsync(async (req, res, next) => {
   let id = req.params.id;
 
   let product = await Product.find().where({ _id: id });
-  let msg = await bidModel.find({ _id: { $in: product[0].bids } });
+  let msg = await bidModel.find({ _id: { $in: product[0].bids } }).sort({ _id: -1 });
 
   let newMsg = [];
   for (let i = 0; i < msg.length; i++) {
