@@ -9,6 +9,8 @@ const { MongoClient, MongoGridFSChunkError, ObjectId } = require("mongodb");
 const userModel = require("../models/user.model");
 const teamModel = require("../models/team.model");
 const catchAsync = require("./../utils/catchAsync");
+const productModel = require("../models/product.model");
+const bidModel = require("../models/bid.model");
 
 const mailgun = require("mailgun-js");
 
@@ -160,13 +162,96 @@ exports.getTeamData = catchAsync(async (req, res, next) => {
 });
 
 exports.getTeamStatistics = catchAsync(async (req, res, next) => {
+  const duration = 604800000;
   let data = req.params.data;
-  console.log(data);
+  let sum = 0;
+  let soldItems = [];
+  // console.log(data);
   let begin = data.substr(0, data.indexOf("+"));
   let end = data.substr(
     data.indexOf("+") + 1,
     data.indexOf("-") - data.indexOf("+") - 1
   );
   let email = data.substr(data.indexOf("-") + 1, data.length);
-  console.log(begin, ",", end, ",", email);
+  // console.log(begin, ",", end, ",", email);
+
+  let user = await userModel.find().where({ email: email });
+  let pid = user[0].products;
+
+  let products = await productModel.find().where({
+    _id: { $in: pid },
+    sold: true,
+    start_date: { $gt: begin - duration, $lt: end - duration },
+  });
+  console.log(products);
+
+  if (products.length >= 0) {
+    for (let i = 0; i < products.length; i++) {
+      sum = sum + products[i]["price"];
+      soldItems.push(products[i]);
+    }
+    let message = { sum: sum, soldItems: soldItems };
+    res.send({ message: message });
+    console.log(message);
+    // console.log(soldItems, "sum: ", sum);
+  } else {
+    res.send("not found");
+  }
+});
+
+exports.getActiveBids = catchAsync(async (req, res, next) => {
+  let email = req.params.email;
+  let user = await userModel.find().where({ email: email });
+  let bid_ids = user[0].bids;
+  let uid = user[0]._id;
+  let bids = await bidModel.find({ _id: { $in: bid_ids } });
+  let activeBids = [];
+  // console.log(bids);
+
+  let pid = [];
+  for (let i = 0; i < bids.length; i++) {
+    pid.push(bids[i]["productId"]);
+    // console.log(bids[i]["productId"]);
+  }
+  let uniquepids = [];
+  pid.forEach((element) => {
+    if (!uniquepids.includes(element)) {
+      uniquepids.push(element);
+    }
+  });
+  let products = await productModel.find({
+    _id: { $in: uniquepids },
+    open: true,
+  });
+  // console.log(products.length);
+
+  let flag;
+  for (let i = 0; i < products.length; i++) {
+    activeBids.push(products[i].toObject());
+    let highestBid = products[i]["bids"].slice(-1);
+    // console.log(highestBid);
+    let bidInfo = await bidModel.find({ _id: highestBid });
+    // console.log(bidInfo);
+    if (bidInfo[0].bidderId === uid) {
+      flag = true;
+      // console.log(bidInfo[0].bidderId, ", ", uid, "bbb");
+      activeBids[i].state = flag;
+    } else {
+      flag = false;
+      // console.log(bidInfo[0].bidderId, ", ", uid, "aaa");
+      activeBids[i].state = flag;
+    }
+  }
+
+  // for (let i = 0; i < products.length; i++) {
+  //   let len = products[i]["bids"].length;
+  //   let bids = await bidModel.find({
+  //     _id: { $in: products[i]["bids"] },
+  //   });
+  //   console.log(bids, products[i].bids);
+  // }
+
+  res.send({
+    message: activeBids,
+  });
 });

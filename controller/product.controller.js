@@ -5,6 +5,8 @@ const { Schema } = mongoose;
 const cloudinary = require("../utils/cloudinary");
 const upload = require("../utils/multer");
 const Product = require("../models/product.model");
+const Team = require("../models/team.model");
+const bidModel = require("../models/bid.model");
 
 const userModel = require("../models/user.model");
 const catchAsync = require("./../utils/catchAsync");
@@ -76,12 +78,128 @@ exports.updateItem = catchAsync(async (req, res, next) => {
 
 exports.getProducts = catchAsync(async (req, res, next) => {
   let option = req.params.option;
-  console.log(option);
+
+  let status = [];
+  let teams = [];
+  let types = [];
+  let range = [];
+  let opt = "";
+  let boolStatus = [];
+  let numberRange = [];
+
+  // console.log(prop.includes(";"));
+
+  if (option.includes(";")) {
+    let options = option.split(";");
+    // console.log(options);
+    options.map((x) => {
+      // console.log(x);
+      x = x.split(":");
+      if (x[0] === "teams") {
+        teams = [...x[1].split(",")];
+      } else if (x[0] === "status") {
+        status = [...x[1].split(",")];
+      } else if (x[0] === "types") {
+        types = [...x[1].split(",")];
+      } else if (x[0] === "option") {
+        opt = x[1];
+      } else if (x[0] === "priceRange") {
+        range = [...x[1].split("-")];
+      }
+    });
+    console.log(teams, status, types, range, opt);
+  } else {
+    let optLs = option.split(":");
+    opt = optLs[1];
+  }
+
+  for (let x = 0; x < status.length; x++) {
+    if (status[x] === "open") {
+      boolStatus.push(true);
+    } else if (status[x] === "closed") {
+      boolStatus.push(false);
+    }
+  }
+
+  if (range.length > 0) {
+    numberRange.push(Number(range[0]));
+    if (range[1] !== "+") {
+      numberRange.push(Number(range[1]));
+    }
+  }
+
+  let products = await Product.find();
+  console.log(opt);
+
+  if (opt === "10") {
+    products = await Product.find().sort({ price: 1 });
+  } else if (opt === "20") {
+    products = await Product.find().sort({ price: -1 });
+  } else if (opt === "30") {
+    products = await Product.find().sort({ start_date: 1 });
+  } else if (opt === "40") {
+    products = await Product.find().sort({ start_date: -1 });
+  }
+
+  for (let x = products.length - 1; x >= 0; x--) {
+    let deleted = false;
+    if (teams.length > 0) {
+      if (!teams.includes(products[x].owner)) {
+        products.splice(x, 1);
+        deleted = true;
+      }
+    }
+    if (types.length > 0 && deleted === false) {
+      if (!types.includes(products[x].type)) {
+        products.splice(x, 1);
+        deleted = true;
+      }
+    }
+    if (boolStatus.length > 0 && deleted === false) {
+      if (!boolStatus.includes(products[x].open)) {
+        products.splice(x, 1);
+        deleted = true;
+      }
+    }
+    if (numberRange.length > 0 && deleted === false) {
+      if (numberRange.length === 1) {
+        if (products[x].price < numberRange[0]) {
+          products.splice(x, 1);
+          deleted = true;
+        }
+      } else {
+        if (products[x].price < numberRange[0] || products[x].price > numberRange[1]) {
+          products.splice(x, 1);
+          deleted = true;
+        }
+      }
+    }
+  }
+
+  if (products.length >= 0) {
+    res.send({
+      message: products,
+    });
+  } else {
+    console.log("error");
+  }
+});
+
+exports.getTeamProducts = catchAsync(async (req, res, next) => {
+  let prop = req.params.id;
+  let email = prop.substr(0, prop.indexOf("-"));
+  let option = prop.substr(prop.indexOf("-") + 1);
+
+  let user = await userModel.find().where({ email: email });
+  var obj_ids = user[0].products.map(function (id) {
+    return ObjectId(id);
+  });
+
 
   if (option == 0) {
     //none
-    let products = await Product.find();
-    //console.log(users);
+    let products = await Product.find({ _id: { $in: obj_ids } });
+
     if (products.length > 0) {
       res.send({
         message: products,
@@ -91,12 +209,34 @@ exports.getProducts = catchAsync(async (req, res, next) => {
     }
   } else if (option == 10) {
     //Increasing Price
+
+    let products = await Product.find({ _id: { $in: obj_ids } }).sort({ price: 1 });
+
+    //console.log(users);
+    if (products.length > 0) {
+      res.send({
+        message: products,
+      });
+    } else {
+      console.log("error");
+    }
   } else if (option == 20) {
     //Decreasing Price
+    let products = await Product.find({ _id: { $in: obj_ids } }).sort({ price: -1 });
+
+
+    if (products.length > 0) {
+      res.send({
+        message: products,
+      });
+    } else {
+      console.log("error");
+    }
+
   } else if (option == 30) {
     //Ending Soon
-    let products = await Product.find().sort({ start_date: 1 });
-    //console.log(users);
+    let products = await Product.find({ _id: { $in: obj_ids } }).sort({ start_date: 1 });
+
     if (products.length > 0) {
       res.send({
         message: products,
@@ -106,8 +246,8 @@ exports.getProducts = catchAsync(async (req, res, next) => {
     }
   } else if (option == 40) {
     //Newly Listed
-    let products = await Product.find().sort({ start_date: -1 });
-    //console.log(users);
+    let products = await Product.find({ _id: { $in: obj_ids } }).sort({ start_date: -1 });
+
     if (products.length > 0) {
       res.send({
         message: products,
@@ -118,23 +258,8 @@ exports.getProducts = catchAsync(async (req, res, next) => {
   }
 });
 
-exports.getTeamProducts = catchAsync(async (req, res, next) => {
-  let email = req.params.id;
-  let user = await userModel.find().where({ email: email });
 
-  var obj_ids = user[0].products.map(function (id) {
-    return ObjectId(id);
-  });
-  let products = await Product.find({ _id: { $in: obj_ids } });
 
-  if (products.length > 0) {
-    res.send({
-      message: products,
-    });
-  } else {
-    console.log("wrong email");
-  }
-});
 
 exports.getHotProducts = catchAsync(async (req, res, next) => {
   let products = await Product.find().where({ open: true });
@@ -175,9 +300,36 @@ exports.getProductPage = catchAsync(async (req, res, next) => {
   }
 });
 
+exports.getBidHistory = catchAsync(async (req, res, next) => {
+  let id = req.params.id;
+
+  let product = await Product.find().where({ _id: id });
+  let msg = await bidModel.find({ _id: { $in: product[0].bids } }).sort({ _id: -1 });
+
+  let newMsg = [];
+  for (let i = 0; i < msg.length; i++) {
+    newMsg.push(msg[i].toObject());
+    let user = await userModel.find().where({ _id: newMsg[i].bidderId });
+    let name = user[0].name + " " + user[0].lastname;
+
+    const date = new Date(newMsg[i].date);
+
+    newMsg[i].date = date.toLocaleString();
+    newMsg[i].name = name;
+  }
+  if (newMsg.length > 0) {
+    res.send({
+      message: newMsg,
+    });
+  } else {
+    console.log("error");
+  }
+});
+
 exports.search = catchAsync(async (req, res, next) => {
   let search1 = req.params.searchQuery;
   // let products = await Product.find({ "$text": { "$search": search1 } });
+  // console.log(search1 + "    asdasd");
   let products = await Product.find({
     $or: [
       {
@@ -214,3 +366,32 @@ exports.delete = catchAsync(async (req, res, next) => {
     console.log(err);
   }
 });
+
+
+exports.filter = catchAsync(async (req, res, next) => {
+  let teams = await Team.find();
+  let products = await Product.find();
+
+  let newTeams = [];
+  let productTypes = [];
+  for (let x = 0; x < teams.length; x++) {
+    let name = teams[x].team.substring(0, teams[x].team.indexOf("@"));
+    name = name.charAt(0).toUpperCase() + name.slice(1);
+    newTeams.push(name);
+  }
+  for (let x = 0; x < products.length; x++) {
+    if (!productTypes.includes(products[x].type)) {
+      productTypes.push(products[x].type);
+    }
+  }
+  const resMes = [{ teams: newTeams, types: productTypes }];
+
+  if (products.length >= 0 || teams.length >= 0) {
+    res.send({
+      message: resMes,
+    });
+  } else {
+    console.log("no product");
+  }
+});
+
