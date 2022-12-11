@@ -183,7 +183,7 @@ exports.getTeamStatistics = catchAsync(async (req, res, next) => {
     sold: true,
     start_date: { $gt: begin - duration, $lt: end - duration },
   });
-  // console.log(products);
+  console.log(products);
 
   if (products.length >= 0) {
     for (let i = 0; i < products.length; i++) {
