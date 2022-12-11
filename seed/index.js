@@ -10,8 +10,8 @@ const teams = require("./teams");
 const { ObjectId } = require("mongodb");
 const { where } = require("../models/bid.model");
 
-const NUM_OF_PRODUCTS = 10; // * 25
-const MAX_NUM_OF_BIDS = 10;
+const NUM_OF_PRODUCTS = 3; // * 25
+const MAX_NUM_OF_BIDS = 6;
 const FIRST_AUCTION = 60; // start day of a first auction
 const AUCTION_DURATION = 7; //days
 
