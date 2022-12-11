@@ -11,6 +11,7 @@ const bidModel = require("../models/bid.model");
 const userModel = require("../models/user.model");
 const catchAsync = require("./../utils/catchAsync");
 const { ObjectId } = require("mongodb");
+const product = require("../seed/product");
 
 exports.uploadItem = catchAsync(async (req, res, next) => {
   try {
@@ -194,6 +195,7 @@ exports.getTeamProducts = catchAsync(async (req, res, next) => {
     return ObjectId(id);
   });
 
+
   if (option == 0) {
     //none
     let products = await Product.find({ _id: { $in: obj_ids } });
@@ -207,6 +209,7 @@ exports.getTeamProducts = catchAsync(async (req, res, next) => {
     }
   } else if (option == 10) {
     //Increasing Price
+
     let products = await Product.find({ _id: { $in: obj_ids } }).sort({ price: 1 });
 
     //console.log(users);
@@ -221,6 +224,7 @@ exports.getTeamProducts = catchAsync(async (req, res, next) => {
     //Decreasing Price
     let products = await Product.find({ _id: { $in: obj_ids } }).sort({ price: -1 });
 
+
     if (products.length > 0) {
       res.send({
         message: products,
@@ -228,6 +232,7 @@ exports.getTeamProducts = catchAsync(async (req, res, next) => {
     } else {
       console.log("error");
     }
+
   } else if (option == 30) {
     //Ending Soon
     let products = await Product.find({ _id: { $in: obj_ids } }).sort({ start_date: 1 });
@@ -253,11 +258,39 @@ exports.getTeamProducts = catchAsync(async (req, res, next) => {
   }
 });
 
+
+
+
+exports.getHotProducts = catchAsync(async (req, res, next) => {
+  let products = await Product.find().where({ open: true });
+  let newLs = [];
+
+  for (let i = 0; i < products.length; i++) {
+    let pop = 0;
+    pop += products[i].price;
+    pop += products[i].bids.length * 300;
+    newLs.push(products[i].toObject());
+    newLs[i].popularity = pop;
+  }
+
+  newLs.sort((a, b) => b.popularity - a.popularity);
+
+  if (products.length > 0) {
+    res.send({
+      message: newLs.slice(0, 3),
+    });
+  } else {
+    console.log("no hot products");
+  }
+});
+
 exports.getProductPage = catchAsync(async (req, res, next) => {
   //get operation
   let id = req.params.id;
-  let product = await Product.find().where({ _id: id });
+  console.log(id);
 
+  let product = await Product.find().where({ _id: id });
+  //console.log(users);
   if (product.length > 0) {
     res.send({
       message: product,
@@ -334,6 +367,7 @@ exports.delete = catchAsync(async (req, res, next) => {
   }
 });
 
+
 exports.filter = catchAsync(async (req, res, next) => {
   let teams = await Team.find();
   let products = await Product.find();
@@ -360,3 +394,4 @@ exports.filter = catchAsync(async (req, res, next) => {
     console.log("no product");
   }
 });
+
