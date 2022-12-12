@@ -254,6 +254,10 @@ exports.getActiveBids = catchAsync(async (req, res, next) => {
   //   console.log(bids, products[i].bids);
   // }
 
+  if (activeBids.length === 0) {
+    activeBids = [{}];
+  }
+
   res.send({
     message: activeBids,
   });
