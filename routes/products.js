@@ -3,6 +3,7 @@ const productController = require("../controller/product.controller");
 const cloudinary = require("../utils/cloudinary");
 const upload = require("../utils/multer");
 const Product = require("../models/product.model");
+const bidController = require("../controller/bid.controller");
 
 router.get("/:option", productController.getProducts);
 router.get("/filter/ops", productController.filter);
@@ -14,5 +15,6 @@ router.get("/search/:searchQuery", productController.search);
 router.delete("/delete/:id", productController.delete);
 
 router.get('/bidHistory/:id', productController.getBidHistory);
+router.newbid( '/product/newbid' + bidController.enterNewBid);
 
 module.exports = router;
