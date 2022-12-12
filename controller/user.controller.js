@@ -242,6 +242,9 @@ exports.getActiveBids = catchAsync(async (req, res, next) => {
       activeBids[i].state = flag;
     }
   }
+  // console.log(activeBids);
+  activeBids = activeBids.sort((a, b) => Number(b.state) - Number(a.state));
+  console.log(activeBids);
 
   // for (let i = 0; i < products.length; i++) {
   //   let len = products[i]["bids"].length;
