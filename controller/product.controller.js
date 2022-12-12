@@ -317,11 +317,15 @@ exports.getBidHistory = catchAsync(async (req, res, next) => {
     newMsg[i].date = date.toLocaleString();
     newMsg[i].name = name;
   }
-  if (newMsg.length > 0) {
+  if (newMsg.length === 0) {
+    newMsg = [{}];
+  }
+  if (newMsg.length >= 0) {
     res.send({
       message: newMsg,
     });
-  } else {
+  }
+  else {
     console.log("error");
   }
 });
