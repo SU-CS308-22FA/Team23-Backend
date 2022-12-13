@@ -10,6 +10,7 @@ const userModel = require("../models/user.model");
 const teamModel = require("../models/team.model");
 const catchAsync = require("./../utils/catchAsync");
 const productModel = require("../models/product.model");
+const bidModel = require("../models/bid.model");
 
 const mailgun = require("mailgun-js");
 
@@ -182,18 +183,82 @@ exports.getTeamStatistics = catchAsync(async (req, res, next) => {
     sold: true,
     start_date: { $gt: begin - duration, $lt: end - duration },
   });
-  // console.log(products);
+  console.log(products);
 
-  if (products.length > 0) {
+  if (products.length >= 0) {
     for (let i = 0; i < products.length; i++) {
       sum = sum + products[i]["price"];
       soldItems.push(products[i]);
     }
-    message = { sum: sum };
-    res.send({ message: sum });
+    let message = { sum: sum, soldItems: soldItems };
+    res.send({ message: message });
     console.log(message);
     // console.log(soldItems, "sum: ", sum);
   } else {
     res.send("not found");
   }
+});
+
+exports.getActiveBids = catchAsync(async (req, res, next) => {
+  let email = req.params.email;
+  let user = await userModel.find().where({ email: email });
+  let bid_ids = user[0].bids;
+  let uid = user[0]._id;
+  let bids = await bidModel.find({ _id: { $in: bid_ids } });
+  let activeBids = [];
+  // console.log(bids);
+
+  let pid = [];
+  for (let i = 0; i < bids.length; i++) {
+    pid.push(bids[i]["productId"]);
+    // console.log(bids[i]["productId"]);
+  }
+  let uniquepids = [];
+  pid.forEach((element) => {
+    if (!uniquepids.includes(element)) {
+      uniquepids.push(element);
+    }
+  });
+  let products = await productModel.find({
+    _id: { $in: uniquepids },
+    open: true,
+  });
+  // console.log(products.length);
+
+  let flag;
+  for (let i = 0; i < products.length; i++) {
+    activeBids.push(products[i].toObject());
+    let highestBid = products[i]["bids"].slice(-1);
+    // console.log(highestBid);
+    let bidInfo = await bidModel.find({ _id: highestBid });
+    // console.log(bidInfo);
+    if (bidInfo[0].bidderId === uid) {
+      flag = true;
+      // console.log(bidInfo[0].bidderId, ", ", uid, "bbb");
+      activeBids[i].state = flag;
+    } else {
+      flag = false;
+      // console.log(bidInfo[0].bidderId, ", ", uid, "aaa");
+      activeBids[i].state = flag;
+    }
+  }
+  // console.log(activeBids);
+  activeBids = activeBids.sort((a, b) => Number(b.state) - Number(a.state));
+  console.log(activeBids);
+
+  // for (let i = 0; i < products.length; i++) {
+  //   let len = products[i]["bids"].length;
+  //   let bids = await bidModel.find({
+  //     _id: { $in: products[i]["bids"] },
+  //   });
+  //   console.log(bids, products[i].bids);
+  // }
+
+  if (activeBids.length === 0) {
+    activeBids = [{}];
+  }
+
+  res.send({
+    message: activeBids,
+  });
 });
