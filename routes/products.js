@@ -13,7 +13,7 @@ router.put("/update/:id", upload.single("image"), productController.updateItem);
 router.get("/productPage/:id", productController.getProductPage);
 router.get("/search/:searchQuery", productController.search);
 router.delete("/delete/:id", productController.delete);
-router.get('/bidHistory/:id', productController.getBidHistory);
-
+router.get("/bidHistory/:id", productController.getBidHistory);
+router.post("/enterBid", productController.enterBid);
 
 module.exports = router;

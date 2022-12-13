@@ -12,6 +12,7 @@ const userModel = require("../models/user.model");
 const catchAsync = require("./../utils/catchAsync");
 const { ObjectId } = require("mongodb");
 const product = require("../seed/product");
+const { parse } = require("path");
 
 exports.uploadItem = catchAsync(async (req, res, next) => {
   try {
@@ -232,7 +233,6 @@ exports.getTeamProducts = catchAsync(async (req, res, next) => {
     } else {
       console.log("error");
     }
-
   } else if (option == 30) {
     //Ending Soon
     let products = await Product.find({ _id: { $in: obj_ids } }).sort({ start_date: 1 });
@@ -371,7 +371,6 @@ exports.delete = catchAsync(async (req, res, next) => {
   }
 });
 
-
 exports.filter = catchAsync(async (req, res, next) => {
   let teams = await Team.find();
   let products = await Product.find();
@@ -399,3 +398,45 @@ exports.filter = catchAsync(async (req, res, next) => {
   }
 });
 
+exports.enterBid = catchAsync(async (req, res, next) => {
+  // try {
+  const myId = new ObjectId();
+  let email = req.body.email;
+  let pid = req.body.pid;
+  let parambid = req.body.bid;
+  let offer = parseInt(parambid);
+
+  let products = await Product.find().where({ _id: pid });
+
+  console.log(offer);
+  let users = await userModel.find().where({ email: email });
+  let uid = users[0]._id;
+  let time = Date.now();
+  console.log(time);
+
+  let bid = new bidModel({
+    _id: myId,
+    offer: offer,
+    bidderId: uid,
+    productId: pid,
+    date: time,
+  });
+  await bid.save();
+  // console.log(bid);
+
+  let query_product = { _id: pid };
+  let newValue_product = { $push: { bids: myId } };
+  Product.updateOne(query_product, newValue_product, () => {
+    console.log(query_product, newValue_product);
+  });
+
+  let query_user = { email: email };
+  let newValue_user = { $push: { bids: myId } };
+  userModel.updateOne(query_user, newValue_user, () => {
+    console.log(query_user, newValue_user);
+  });
+
+  let newValue = { $set: { price: offer } };
+
+  Product.updateOne(query_product, newValue, () => {});
+});
