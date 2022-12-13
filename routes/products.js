@@ -3,7 +3,6 @@ const productController = require("../controller/product.controller");
 const cloudinary = require("../utils/cloudinary");
 const upload = require("../utils/multer");
 const Product = require("../models/product.model");
-const bidController = require("../controller/bid.controller");
 
 router.get("/:option", productController.getProducts);
 router.get("/get/hot", productController.getHotProducts);
