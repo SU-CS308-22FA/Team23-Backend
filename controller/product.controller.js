@@ -12,6 +12,7 @@ const userModel = require("../models/user.model");
 const catchAsync = require("./../utils/catchAsync");
 const { ObjectId } = require("mongodb");
 const product = require("../seed/product");
+const { parse } = require("path");
 
 exports.uploadItem = catchAsync(async (req, res, next) => {
   try {
@@ -168,7 +169,10 @@ exports.getProducts = catchAsync(async (req, res, next) => {
           deleted = true;
         }
       } else {
-        if (products[x].price < numberRange[0] || products[x].price > numberRange[1]) {
+        if (
+          products[x].price < numberRange[0] ||
+          products[x].price > numberRange[1]
+        ) {
           products.splice(x, 1);
           deleted = true;
         }
@@ -195,7 +199,6 @@ exports.getTeamProducts = catchAsync(async (req, res, next) => {
     return ObjectId(id);
   });
 
-
   if (option == 0) {
     //none
     let products = await Product.find({ _id: { $in: obj_ids } });
@@ -210,7 +213,9 @@ exports.getTeamProducts = catchAsync(async (req, res, next) => {
   } else if (option == 10) {
     //Increasing Price
 
-    let products = await Product.find({ _id: { $in: obj_ids } }).sort({ price: 1 });
+    let products = await Product.find({ _id: { $in: obj_ids } }).sort({
+      price: 1,
+    });
 
     //console.log(users);
     if (products.length > 0) {
@@ -222,8 +227,9 @@ exports.getTeamProducts = catchAsync(async (req, res, next) => {
     }
   } else if (option == 20) {
     //Decreasing Price
-    let products = await Product.find({ _id: { $in: obj_ids } }).sort({ price: -1 });
-
+    let products = await Product.find({ _id: { $in: obj_ids } }).sort({
+      price: -1,
+    });
 
     if (products.length > 0) {
       res.send({
@@ -232,10 +238,11 @@ exports.getTeamProducts = catchAsync(async (req, res, next) => {
     } else {
       console.log("error");
     }
-
   } else if (option == 30) {
     //Ending Soon
-    let products = await Product.find({ _id: { $in: obj_ids } }).sort({ start_date: 1 });
+    let products = await Product.find({ _id: { $in: obj_ids } }).sort({
+      start_date: 1,
+    });
 
     if (products.length > 0) {
       res.send({
@@ -246,7 +253,9 @@ exports.getTeamProducts = catchAsync(async (req, res, next) => {
     }
   } else if (option == 40) {
     //Newly Listed
-    let products = await Product.find({ _id: { $in: obj_ids } }).sort({ start_date: -1 });
+    let products = await Product.find({ _id: { $in: obj_ids } }).sort({
+      start_date: -1,
+    });
 
     if (products.length > 0) {
       res.send({
@@ -257,9 +266,6 @@ exports.getTeamProducts = catchAsync(async (req, res, next) => {
     }
   }
 });
-
-
-
 
 exports.getHotProducts = catchAsync(async (req, res, next) => {
   let products = await Product.find().where({ open: true });
@@ -304,7 +310,9 @@ exports.getBidHistory = catchAsync(async (req, res, next) => {
   let id = req.params.id;
 
   let product = await Product.find().where({ _id: id });
-  let msg = await bidModel.find({ _id: { $in: product[0].bids } }).sort({ _id: -1 });
+  let msg = await bidModel
+    .find({ _id: { $in: product[0].bids } })
+    .sort({ _id: -1 });
 
   let newMsg = [];
   for (let i = 0; i < msg.length; i++) {
@@ -324,8 +332,7 @@ exports.getBidHistory = catchAsync(async (req, res, next) => {
     res.send({
       message: newMsg,
     });
-  }
-  else {
+  } else {
     console.log("error");
   }
 });
@@ -371,7 +378,6 @@ exports.delete = catchAsync(async (req, res, next) => {
   }
 });
 
-
 exports.filter = catchAsync(async (req, res, next) => {
   let teams = await Team.find();
   let products = await Product.find();
@@ -399,3 +405,45 @@ exports.filter = catchAsync(async (req, res, next) => {
   }
 });
 
+exports.enterBid = catchAsync(async (req, res, next) => {
+  // try {
+  const myId = new ObjectId();
+  let email = req.body.email;
+  let pid = req.body.pid;
+  let parambid = req.body.bid;
+  let offer = parseInt(parambid);
+
+  let products = await Product.find().where({ _id: pid });
+
+  console.log(offer);
+  let users = await userModel.find().where({ email: email });
+  let uid = users[0]._id;
+  let time = Date.now();
+  console.log(time);
+
+  let bid = new bidModel({
+    _id: myId,
+    offer: offer,
+    bidderId: uid,
+    productId: pid,
+    date: time,
+  });
+  await bid.save();
+  // console.log(bid);
+
+  let query_product = { _id: pid };
+  let newValue_product = { $push: { bids: myId } };
+  Product.updateOne(query_product, newValue_product, () => {
+    console.log(query_product, newValue_product);
+  });
+
+  let query_user = { email: email };
+  let newValue_user = { $push: { bids: myId } };
+  userModel.updateOne(query_user, newValue_user, () => {
+    console.log(query_user, newValue_user);
+  });
+
+  let newValue = { $set: { price: offer } };
+
+  Product.updateOne(query_product, newValue, () => {});
+});
