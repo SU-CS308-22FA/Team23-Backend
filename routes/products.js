@@ -15,5 +15,6 @@ router.get("/search/:searchQuery", productController.search);
 router.delete("/delete/:id", productController.delete);
 router.get("/bidHistory/:id", productController.getBidHistory);
 router.post("/enterBid", productController.enterBid);
+router.get("/getCertificate/:pid", productController.getCertificate);
 
 module.exports = router;

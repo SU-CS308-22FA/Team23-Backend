@@ -445,5 +445,30 @@ exports.enterBid = catchAsync(async (req, res, next) => {
 
   let newValue = { $set: { price: offer } };
 
-  Product.updateOne(query_product, newValue, () => {});
+  Product.updateOne(query_product, newValue, () => { });
 });
+
+exports.getCertificate = catchAsync(async (req, res, next) => {
+  let pid = req.params.pid;
+  console.log(pid);
+  let products = await Product.find().where({ _id: pid });
+
+  if (typeof products[0] !== "undefined") {
+    console.log(products[0]);
+  } else {
+    console.log("anan")
+  }
+
+  let msg;
+  if (products.length >= 0) {
+    msg = products;
+  } else {
+    msg = "wrong code"
+  }
+
+  res.send({
+    message: msg,
+  });
+
+});
+
