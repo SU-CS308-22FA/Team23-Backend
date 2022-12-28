@@ -65,22 +65,23 @@ exports.signin = catchAsync(async (req, res, next) => {
   let password = req.body.password;
 
   let users = await userModel.find().where({ email: email });
+  let message;
   if (users.length > 0) {
     console.log(password, users[0].password);
     let comparisonResult = password == users[0].password ? true : false;
     if (comparisonResult) {
       let token = auth.generateToken(users[0]);
       res.cookie("auth_token", token);
-      res.send({
-        redirectURL: "/",
-        message: "correct email",
-      });
+      message = true;
     } else {
       console.log("wrong password");
+      message = false;
     }
   } else {
     console.log("wrong email");
+    message = false;
   }
+  res.send({ message: message });
 });
 
 exports.getUserInfo = catchAsync(async (req, res, next) => {
@@ -241,10 +242,17 @@ exports.getActiveBids = catchAsync(async (req, res, next) => {
       // console.log(bidInfo[0].bidderId, ", ", uid, "aaa");
       activeBids[i].state = flag;
     }
+
+    let merge = await bidModel.find({
+      productId: products[i]._id,
+      bidderId: uid,
+    });
+    // console.log("merge:", merge);
+    activeBids[i].price = merge[merge.length - 1].offer;
   }
   // console.log(activeBids);
   activeBids = activeBids.sort((a, b) => Number(b.state) - Number(a.state));
-  console.log(activeBids);
+  // console.log(activeBids);
 
   // for (let i = 0; i < products.length; i++) {
   //   let len = products[i]["bids"].length;
@@ -260,5 +268,41 @@ exports.getActiveBids = catchAsync(async (req, res, next) => {
 
   res.send({
     message: activeBids,
+  });
+});
+
+exports.addFavList = catchAsync(async (req, res, next) => {
+  let email = req.params.data;
+  let pid = req.body.pid;
+
+  let query = { email: email };
+  let newValue = { $push: { favs: pid } };
+  userModel.updateOne(query, newValue, () => {
+    console.log(query, newValue);
+  });
+});
+
+exports.deleteFavList = catchAsync(async (req, res, next) => {
+  let data = req.params.data;
+  let email = data.substr(0, data.indexOf("+"));
+  console.log("a", email);
+  let pid = data.substr(data.indexOf("+") + 1, data.length);
+
+  let query = { email: email };
+  let newValue = { $pull: { favs: pid } };
+  userModel.updateOne(query, newValue, () => {
+    console.log(query, newValue);
+  });
+});
+
+exports.getFavList = catchAsync(async (req, res, next) => {
+  let email = req.params.email;
+  let user = await userModel.find().where({ email: email });
+  var obj_ids = user[0].favs.map(function (id) {
+    return ObjectId(id);
+  });
+  let products = await productModel.find({ _id: { $in: obj_ids } });
+  res.send({
+    message: products,
   });
 });

@@ -79,7 +79,9 @@ exports.updateItem = catchAsync(async (req, res, next) => {
 
 exports.getProducts = catchAsync(async (req, res, next) => {
   let option = req.params.option;
-
+  let email = option.substr(option.indexOf("&") + 1, option.length);
+  option = option.substr(0, option.indexOf("&"));
+  console.log("email: ", email, option);
   let status = [];
   let teams = [];
   let types = [];
@@ -180,9 +182,41 @@ exports.getProducts = catchAsync(async (req, res, next) => {
     }
   }
 
+  let user = await userModel.find().where({ email: email });
+  let fav;
+  let finalProduct = [];
+  uid = user[0]._id;
+  let product = await Product.find({ _id: { $in: user[0].favs } });
+  let ids = [];
+  for (let i = 0; i < product.length; i++) {
+    ids.push(product[i]._id);
+  }
+  console.log(ids);
+  for (let i = 0; i < products.length; i++) {
+    finalProduct.push(products[i].toObject());
+    if (ids.includes(products[i]._id)) {
+      console.log("include");
+      fav = true;
+      finalProduct[i].isFav = fav;
+    } else {
+      fav = false;
+      finalProduct[i].isFav = fav;
+    }
+    // finalProduct.push(products[i].toObject());
+    // if (products[i].favs.length > 0) {
+    //   fav = true;
+    //   finalProduct[i].isFav = fav;
+    // } else if (products[i].favs.length === 0) {
+    //   fav = false;
+    //   finalProduct[i].isFav = fav;
+    // }
+  }
+
+  // console.log(finalProduct);
+
   if (products.length >= 0) {
     res.send({
-      message: products,
+      message: finalProduct,
     });
   } else {
     console.log("error");
