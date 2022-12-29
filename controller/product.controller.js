@@ -453,12 +453,6 @@ exports.getCertificate = catchAsync(async (req, res, next) => {
   console.log(pid);
   let products = await Product.find().where({ _id: pid });
 
-  if (typeof products[0] !== "undefined") {
-    console.log(products[0]);
-  } else {
-    console.log("anan")
-  }
-
   let msg;
   if (products.length >= 0) {
     msg = products;

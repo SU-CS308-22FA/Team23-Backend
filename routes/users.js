@@ -11,5 +11,6 @@ router.delete("/delete", userController.delete);
 router.get("/team/:email", userController.getTeamData);
 router.get("/statistics/:data", userController.getTeamStatistics);
 router.get("/activebids/:email", userController.getActiveBids);
+router.get("/wonAuctions/:email", userController.getWonAuctions);
 
 module.exports = router;
