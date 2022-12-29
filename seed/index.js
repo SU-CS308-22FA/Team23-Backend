@@ -123,6 +123,7 @@ const seedDB = async () => {
     const team = new Team({
       team: `${teams[i].team}`,
       logo: `${teams[i].url}`,
+      displayName: `${teams[i].displayName}`,
     });
     await team.save();
   }
@@ -163,17 +164,19 @@ const seedDB = async () => {
   await Product.deleteMany({});
   await Bid.deleteMany({});
 
-  for (let i = 0; i < products.length; i++) {
+  for (let i = 0; i < products.length * NUM_OF_PRODUCTS; i++) {
     times.push(randomNumberGenerator(Date.now() - daysToMilisecond(FIRST_AUCTION), Date.now()));
   }
 
   times.sort();
   console.log(times);
+  let count = 0;
 
   for (let a = 0; a < NUM_OF_PRODUCTS; a++) {
     for (let i = 0; i < products.length; i++) {
       let id = new ObjectId();
-      let start = times[i];
+      let start = times[count];
+      count++;
       let price = randomPrice();
       let sold = false;
       let open = true;
