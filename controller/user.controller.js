@@ -265,64 +265,17 @@ exports.getActiveBids = catchAsync(async (req, res, next) => {
 
 exports.getMyPurchase = catchAsync(async (req, res, next) => {
   let email = req.params.email;
-  let user = await userModel.find().where({ email: email });
-  let bid_ids = user[0].bids;
-  let uid = user[0]._id;
-  let bids = await bidModel.find({ _id: { $in: bid_ids } });
-  let activeBids = [];
-  // console.log(bids);
-
-  let pid = [];
-  for (let i = 0; i < bids.length; i++) {
-    pid.push(bids[i]['productId']);
-    // console.log(bids[i]["productId"]);
+  let user = await userModel.findOne({ email: email });
+  if (!user) {
+    return res.status(404).send({
+      message: 'User not found',
+    });
   }
-  let uniquepids = [];
-  pid.forEach((element) => {
-    if (!uniquepids.includes(element)) {
-      uniquepids.push(element);
-    }
-  });
+  let purchasedProductIds = user.purchased;
   let products = await productModel.find({
-    _id: { $in: uniquepids },
-    open: true,
+    _id: { $in: purchasedProductIds },
   });
-  // console.log(products.length);
-
-  let flag;
-  for (let i = 0; i < products.length; i++) {
-    activeBids.push(products[i].toObject());
-    let highestBid = products[i]['bids'].slice(-1);
-    // console.log(highestBid);
-    let bidInfo = await bidModel.find({ _id: highestBid });
-    // console.log(bidInfo);
-    if (bidInfo[0].bidderId === uid) {
-      flag = true;
-      // console.log(bidInfo[0].bidderId, ", ", uid, "bbb");
-      activeBids[i].state = flag;
-    } else {
-      flag = false;
-      // console.log(bidInfo[0].bidderId, ", ", uid, "aaa");
-      activeBids[i].state = flag;
-    }
-  }
-  // console.log(activeBids);
-  activeBids = activeBids.sort((a, b) => Number(b.state) - Number(a.state));
-  console.log(activeBids);
-
-  // for (let i = 0; i < products.length; i++) {
-  //   let len = products[i]["bids"].length;
-  //   let bids = await bidModel.find({
-  //     _id: { $in: products[i]["bids"] },
-  //   });
-  //   console.log(bids, products[i].bids);
-  // }
-
-  if (activeBids.length === 0) {
-    activeBids = [{}];
-  }
-
   res.send({
-    message: activeBids,
+    message: products,
   });
 });
