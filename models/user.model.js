@@ -24,6 +24,7 @@ const userSchema = new Schema({
   products: [String],
   purchased: [String],
   bids: [String],
+  favs: [String],
 });
 
 module.exports = mongoose.model("User", userSchema);

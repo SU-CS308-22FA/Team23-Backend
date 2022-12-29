@@ -11,6 +11,9 @@ router.delete("/delete", userController.delete);
 router.get("/team/:email", userController.getTeamData);
 router.get("/statistics/:data", userController.getTeamStatistics);
 router.get("/activebids/:email", userController.getActiveBids);
+router.post("/favList/:data", userController.addFavList);
+router.put("/deletefavList/:data", userController.deleteFavList);
+router.get("/getFavList/:email", userController.getFavList);
 
 router.get("/wonAuctions/:email", userController.getWonAuctions);
 
