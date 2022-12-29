@@ -16,4 +16,6 @@ router.delete("/delete/:id", productController.delete);
 router.get("/bidHistory/:id", productController.getBidHistory);
 router.post("/enterBid", productController.enterBid);
 
+router.post("/getCertificate/:pid", productController.getCertificate);
+
 module.exports = router;

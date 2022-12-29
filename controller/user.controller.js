@@ -263,19 +263,48 @@ exports.getActiveBids = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.getMyPurchase = catchAsync(async (req, res, next) => {
+exports.getWonAuctions = catchAsync(async (req, res, next) => {
+  console.log("anan");
   let email = req.params.email;
-  let user = await userModel.findOne({ email: email });
-  if (!user) {
-    return res.status(404).send({
-      message: 'User not found',
-    });
+  let user = await userModel.find().where({ email: email });
+  let bid_ids = user[0].bids;
+  let uid = user[0]._id;
+  let bids = await bidModel.find({ _id: { $in: bid_ids } });
+  let wonAuctions = [];
+
+  let pid = [];
+  for (let i = 0; i < bids.length; i++) {
+    pid.push(bids[i]["productId"]);
   }
-  let purchasedProductIds = user.purchased;
-  let products = await productModel.find({
-    _id: { $in: purchasedProductIds },
+  let uniquepids = [];
+  pid.forEach((element) => {
+    if (!uniquepids.includes(element)) {
+      uniquepids.push(element);
+    }
   });
+  let products = await productModel.find({
+    _id: { $in: uniquepids },
+    open: false,
+  });
+
+  let flag;
+  for (let i = 0; i < products.length; i++) {
+
+    let highestBid = products[i]["bids"].slice(-1);
+    let bidInfo = await bidModel.find({ _id: highestBid });
+
+    if (bidInfo[0].bidderId === uid) {
+      wonAuctions.push(products[i].toObject());
+    }
+  }
+  wonAuctions = wonAuctions.sort((a, b) => Number(b.state) - Number(a.state));
+
+  if (wonAuctions.length === 0) {
+    wonAuctions = [{}];
+  }
   res.send({
-    message: products,
+    message: wonAuctions,
   });
 });
+
+
