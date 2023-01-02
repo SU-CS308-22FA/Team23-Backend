@@ -14,8 +14,7 @@ router.get("/activebids/:email", userController.getActiveBids);
 router.post("/favList/:data", userController.addFavList);
 router.put("/deletefavList/:data", userController.deleteFavList);
 router.get("/getFavList/:email", userController.getFavList);
-
+router.post("/creditCard/:data", userController.addCreditCard);
 router.get("/wonAuctions/:email", userController.getWonAuctions);
-
 
 module.exports = router;
