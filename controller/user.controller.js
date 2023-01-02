@@ -1,25 +1,32 @@
-const express = require('express');
+const express = require("express");
+var Iyzipay = require("iyzipay");
+var iyzipay = new Iyzipay({
+  apiKey: "sandbox-HLLU432VO604hCISMSiFKATBMIsGQTHV",
+  secretKey: "sandbox-dOQHTJkhkjvlhoCTDMBG1IR2SQ30iJMi",
+  uri: "https://sandbox-api.iyzipay.com",
+});
 var router = express.Router();
-let mongoose = require('mongoose');
-let auth = require('../controller/auth');
-let bcrypt = require('bcryptjs');
+let mongoose = require("mongoose");
+let auth = require("../controller/auth");
+let bcrypt = require("bcryptjs");
 const { Schema } = mongoose;
-const { MongoClient, MongoGridFSChunkError, ObjectId } = require('mongodb');
+const { MongoClient, MongoGridFSChunkError, ObjectId } = require("mongodb");
 
-const userModel = require('../models/user.model');
-const teamModel = require('../models/team.model');
-const catchAsync = require('./../utils/catchAsync');
-const productModel = require('../models/product.model');
-const bidModel = require('../models/bid.model');
+const userModel = require("../models/user.model");
+const teamModel = require("../models/team.model");
+const catchAsync = require("./../utils/catchAsync");
+const productModel = require("../models/product.model");
+const bidModel = require("../models/bid.model");
+const creditCard = require("../models/creditCard.model");
 
-const mailgun = require('mailgun-js');
+const mailgun = require("mailgun-js");
 
 exports.signup = catchAsync(async (req, res, next) => {
   var newUser = new userModel();
   newUser.name = req.body.name;
   newUser.lastname = req.body.lastname;
   newUser.email = req.body.email;
-  newUser.type = 'fan';
+  newUser.type = "fan";
   // newUser.password = await bcrypt.hash(req.body.password, 12);
   newUser.password = req.body.password;
   newUser.products = [];
@@ -35,20 +42,20 @@ exports.signup = catchAsync(async (req, res, next) => {
         console.log(error);
       } else {
         res.send({
-          redirectURL: '/signin',
-          message: 'data inserted',
+          redirectURL: "/signin",
+          message: "data inserted",
         });
-        const DOMAIN = 'sandbox48645b44d8eb4529a6aed16a5240784b.mailgun.org';
-        const APIKEY = 'ad03f06d58ebea0a033d786965db53a8-2de3d545-a28c2796';
+        const DOMAIN = "sandbox48645b44d8eb4529a6aed16a5240784b.mailgun.org";
+        const APIKEY = "ad03f06d58ebea0a033d786965db53a8-2de3d545-a28c2796";
         const mg = mailgun({
           apiKey: APIKEY,
           domain: DOMAIN,
         });
         const data = {
-          from: 'Excited User <me@samples.mailgun.org>',
+          from: "Excited User <me@samples.mailgun.org>",
           to: newUser.email,
-          subject: 'MAÇTANA HOŞGELDİNİZ!',
-          text: 'MAÇTANA HOŞGELDİNİZ!\nHesabınız başarılı bir şekilde oluşturuldu.',
+          subject: "MAÇTANA HOŞGELDİNİZ!",
+          text: "MAÇTANA HOŞGELDİNİZ!\nHesabınız başarılı bir şekilde oluşturuldu.",
         };
         mg.messages().send(data, function (error, body) {
           console.log(body);
@@ -56,7 +63,7 @@ exports.signup = catchAsync(async (req, res, next) => {
       }
     });
   } else {
-    res.send({ message: 'Rejected' });
+    res.send({ message: "Rejected" });
   }
 });
 
@@ -88,7 +95,7 @@ exports.getUserInfo = catchAsync(async (req, res, next) => {
   //get operation
   let email = req.params.email;
   console.log(email);
-  console.log('profile');
+  console.log("profile");
 
   let users = await userModel.find().where({ email: email });
   //console.log(users);
@@ -97,7 +104,7 @@ exports.getUserInfo = catchAsync(async (req, res, next) => {
       message: users,
     });
   } else {
-    console.log('wrong email');
+    console.log("wrong email");
   }
 });
 
@@ -117,13 +124,13 @@ exports.update = catchAsync(async (req, res, next) => {
       userModel.updateOne(query, newValue, () => {
         console.log(query, newValue);
 
-        console.log('1 document updated');
+        console.log("1 document updated");
       });
     } else {
-      console.log('wrong password');
+      console.log("wrong password");
     }
   } else {
-    console.log('wrong email');
+    console.log("wrong email");
   }
 });
 
@@ -138,10 +145,10 @@ exports.delete = catchAsync(async (req, res, next) => {
     userModel.deleteOne(query, () => {
       console.log(query, newValue);
 
-      console.log('1 document updated');
+      console.log("1 document updated");
     });
   } else {
-    console.log('wrong email');
+    console.log("wrong email");
   }
 });
 
@@ -158,7 +165,7 @@ exports.getTeamData = catchAsync(async (req, res, next) => {
       message: message,
     });
   } else {
-    console.log('not admin');
+    console.log("not admin");
   }
 });
 
@@ -168,12 +175,12 @@ exports.getTeamStatistics = catchAsync(async (req, res, next) => {
   let sum = 0;
   let soldItems = [];
   // console.log(data);
-  let begin = data.substr(0, data.indexOf('+'));
+  let begin = data.substr(0, data.indexOf("+"));
   let end = data.substr(
-    data.indexOf('+') + 1,
-    data.indexOf('-') - data.indexOf('+') - 1
+    data.indexOf("+") + 1,
+    data.indexOf("-") - data.indexOf("+") - 1
   );
-  let email = data.substr(data.indexOf('-') + 1, data.length);
+  let email = data.substr(data.indexOf("-") + 1, data.length);
   // console.log(begin, ",", end, ",", email);
 
   let user = await userModel.find().where({ email: email });
@@ -188,7 +195,7 @@ exports.getTeamStatistics = catchAsync(async (req, res, next) => {
 
   if (products.length >= 0) {
     for (let i = 0; i < products.length; i++) {
-      sum = sum + products[i]['price'];
+      sum = sum + products[i]["price"];
       soldItems.push(products[i]);
     }
     let message = { sum: sum, soldItems: soldItems };
@@ -196,7 +203,7 @@ exports.getTeamStatistics = catchAsync(async (req, res, next) => {
     //console.log(message);
     // console.log(soldItems, "sum: ", sum);
   } else {
-    res.send('not found');
+    res.send("not found");
   }
 });
 
@@ -211,7 +218,7 @@ exports.getActiveBids = catchAsync(async (req, res, next) => {
 
   let pid = [];
   for (let i = 0; i < bids.length; i++) {
-    pid.push(bids[i]['productId']);
+    pid.push(bids[i]["productId"]);
     // console.log(bids[i]["productId"]);
   }
   let uniquepids = [];
@@ -229,7 +236,7 @@ exports.getActiveBids = catchAsync(async (req, res, next) => {
   let flag;
   for (let i = 0; i < products.length; i++) {
     activeBids.push(products[i].toObject());
-    let highestBid = products[i]['bids'].slice(-1);
+    let highestBid = products[i]["bids"].slice(-1);
     // console.log(highestBid);
     let bidInfo = await bidModel.find({ _id: highestBid });
     // console.log(bidInfo);
@@ -269,6 +276,100 @@ exports.getActiveBids = catchAsync(async (req, res, next) => {
   res.send({
     message: activeBids,
   });
+});
+
+// exports.addCreditCard = catchAsync(async (req, res, next) => {
+//   let message = {};
+//   let email = req.params.data;
+//   let cardNumber = req.body.cardNumber;
+//   let cvv = req.body.cvv;
+//   let name = req.body.name;
+//   let expDate = req.body.expDate;
+//   console.log(email, cvv, name, expDate);
+
+//   let user = await userModel.find().where({ email: email });
+//   let uid = user[0]._id;
+
+//   var newCreditCard = new creditCard();
+//   newCreditCard.name = name;
+//   newCreditCard.userId = uid;
+//   newCreditCard.cardNumber = cardNumber;
+//   newCreditCard.cvv = cvv;
+//   newCreditCard.expDate = expDate;
+//   newCreditCard._id = new ObjectId();
+
+//   await newCreditCard.save(function (err, data) {
+//     if (err) {
+//       console.log("error");
+//     } else {
+//       message = "inserted";
+//       res.send({
+//         message: message,
+//       });
+//     }
+//   });
+// });
+
+exports.addCreditCard = catchAsync(async (req, res, next) => {
+  let message = {};
+  let email = req.params.data;
+  let cardNumber = req.body.cardNumber;
+  let cvv = req.body.cvv;
+  let name = req.body.name;
+  let expDate = req.body.expDate;
+  let month = expDate[0];
+  let year = expDate[1];
+  cardNumber = cardNumber.replace(/\s/g, "");
+  console.log(cardNumber);
+
+  let user = await userModel.find().where({ email: email });
+  let uid = user[0]._id;
+
+  iyzipay.card.create(
+    {
+      locale: Iyzipay.LOCALE.TR,
+      conversationId: "123456789",
+      email: email,
+      externalId: "external id",
+      card: {
+        cardAlias: "card alias",
+        cardHolderName: name,
+        cardNumber: cardNumber,
+        expireMonth: month,
+        expireYear: year,
+      },
+    },
+    function (err, result) {
+      console.log("result", result);
+      if (result.status === "failure") {
+        console.log("failded 0");
+      } else {
+        var newCreditCard = new creditCard();
+        newCreditCard.conversationId = result.conversationId;
+        newCreditCard.userId = uid;
+        newCreditCard.email = email;
+        newCreditCard.cardUserKey = result.cardUserKey;
+        newCreditCard.cardToken = result.cardToken;
+        newCreditCard.lastFourDigits = result.lastFourDigits;
+        newCreditCard.cardType = result.cardType;
+        newCreditCard.cardAssociation = result.cardAssociation;
+        newCreditCard.cardFamily = result.cardFamily;
+        newCreditCard.cardBankName = result.cardBankName;
+        newCreditCard._id = new ObjectId();
+
+        newCreditCard.save(function (err, data) {
+          if (err) {
+            console.log("error");
+          } else {
+            message = "inserted";
+            res.send({
+              message: message,
+            });
+          }
+        });
+      }
+    }
+  );
 });
 
 exports.addFavList = catchAsync(async (req, res, next) => {
@@ -331,7 +432,6 @@ exports.getWonAuctions = catchAsync(async (req, res, next) => {
   });
 
   for (let i = 0; i < products.length; i++) {
-
     let highestBid = products[i]["bids"].slice(-1);
     let bidInfo = await bidModel.find({ _id: highestBid });
 
@@ -348,6 +448,7 @@ exports.getWonAuctions = catchAsync(async (req, res, next) => {
     message: wonAuctions,
   });
 });
+
 
 exports.getPaymentMethod = catchAsync(async (req, res, next) => {
   let email = req.params.email;
