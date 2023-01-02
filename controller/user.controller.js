@@ -351,5 +351,19 @@ exports.getWonAuctions = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.getPaymentMethod = catchAsync(async (req, res, next) => {
+  let email = req.params.email;
+  let user = await userModel.find().where({ email: email });
+  let uid = user[0]._id;
 
+  // let cards = await creditCardModel.find().where({userId: uid});
+  // let addresses = await addressModel.find().where({userId: uid});
 
+  selectCard = [0, 1, 2]; //cards
+  selectDelivery = [0, 1, 2, 3, 4]; //addresses
+
+  res.send({
+    cardMessage: selectCard,
+    addressMessage: selectDelivery,
+  });
+});
