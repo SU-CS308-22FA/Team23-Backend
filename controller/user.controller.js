@@ -1,10 +1,12 @@
 const express = require("express");
+
 var Iyzipay = require("iyzipay");
 var iyzipay = new Iyzipay({
   apiKey: "sandbox-HLLU432VO604hCISMSiFKATBMIsGQTHV",
   secretKey: "sandbox-dOQHTJkhkjvlhoCTDMBG1IR2SQ30iJMi",
   uri: "https://sandbox-api.iyzipay.com",
 });
+
 var router = express.Router();
 let mongoose = require("mongoose");
 let auth = require("../controller/auth");
@@ -17,7 +19,9 @@ const teamModel = require("../models/team.model");
 const catchAsync = require("./../utils/catchAsync");
 const productModel = require("../models/product.model");
 const bidModel = require("../models/bid.model");
+
 const creditCard = require("../models/creditCard.model");
+
 
 const mailgun = require("mailgun-js");
 
@@ -89,6 +93,33 @@ exports.signin = catchAsync(async (req, res, next) => {
     message = false;
   }
   res.send({ message: message });
+});
+
+exports.addAddress = catchAsync(async (req, res, next) => {
+  console.log(req.body);
+  let email = req.body.email;
+  let address = req.body.address;
+  let city = req.body.city;
+  let zip = req.body.zip;
+  let country = req.body.country;
+
+  let users = await userModel.find().where({ email: email });
+
+  if (users.length > 0) {
+    let addresses = users[0].addresses;
+    addresses.push({ address: address, city: city, zip: zip, country: country });
+    let query = { email: email };
+
+    let newValue = { $set: { addresses: addresses } };
+
+    userModel.updateOne(query, newValue, () => {
+      console.log(query, newValue);
+      console.log("1 document updated");
+    });
+  } else {
+    console.log("wrong email");
+    message = false;
+  }
 });
 
 exports.getUserInfo = catchAsync(async (req, res, next) => {
@@ -176,10 +207,12 @@ exports.getTeamStatistics = catchAsync(async (req, res, next) => {
   let soldItems = [];
   // console.log(data);
   let begin = data.substr(0, data.indexOf("+"));
+
   let end = data.substr(
     data.indexOf("+") + 1,
     data.indexOf("-") - data.indexOf("+") - 1
   );
+
   let email = data.substr(data.indexOf("-") + 1, data.length);
   // console.log(begin, ",", end, ",", email);
 
@@ -449,7 +482,6 @@ exports.getWonAuctions = catchAsync(async (req, res, next) => {
   });
 });
 
-
 exports.getPaymentMethod = catchAsync(async (req, res, next) => {
   let email = req.params.email;
   let user = await userModel.find().where({ email: email });
@@ -479,3 +511,4 @@ exports.getPaymentMethod = catchAsync(async (req, res, next) => {
     addressMessage: selectDelivery,
   });
 });
+

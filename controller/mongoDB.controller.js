@@ -16,6 +16,14 @@ const userSchema = new Schema({
   email: String,
   password: String,
   status: Boolean,
+  addresses: [
+    {
+      address: String,
+      city: String,
+      zip: String,
+      country: String,
+    },
+  ],
   products: [String],
   purchased: [String],
   bids: [String],
