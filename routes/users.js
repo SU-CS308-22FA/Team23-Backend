@@ -5,6 +5,7 @@ let userController = require("../controller/user.controller");
 
 router.post("/signup", userController.signup);
 router.post("/signin", userController.signin);
+router.post("/address", userController.addAddress);
 router.get("/profile/:email", userController.getUserInfo);
 router.put("/update", userController.update);
 router.delete("/delete", userController.delete);
@@ -16,6 +17,5 @@ router.put("/deletefavList/:data", userController.deleteFavList);
 router.get("/getFavList/:email", userController.getFavList);
 
 router.get("/wonAuctions/:email", userController.getWonAuctions);
-
 
 module.exports = router;
