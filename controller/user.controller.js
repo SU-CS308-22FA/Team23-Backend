@@ -191,7 +191,7 @@ exports.getTeamStatistics = catchAsync(async (req, res, next) => {
     sold: true,
     start_date: { $gt: begin - duration, $lt: end - duration },
   });
-  console.log(products);
+  //console.log(products);
 
   if (products.length >= 0) {
     for (let i = 0; i < products.length; i++) {
@@ -200,7 +200,7 @@ exports.getTeamStatistics = catchAsync(async (req, res, next) => {
     }
     let message = { sum: sum, soldItems: soldItems };
     res.send({ message: message });
-    console.log(message);
+    //console.log(message);
     // console.log(soldItems, "sum: ", sum);
   } else {
     res.send("not found");
@@ -409,7 +409,6 @@ exports.getFavList = catchAsync(async (req, res, next) => {
 });
 
 exports.getWonAuctions = catchAsync(async (req, res, next) => {
-  console.log("anan");
   let email = req.params.email;
   let user = await userModel.find().where({ email: email });
   let bid_ids = user[0].bids;
@@ -432,7 +431,6 @@ exports.getWonAuctions = catchAsync(async (req, res, next) => {
     open: false,
   });
 
-  let flag;
   for (let i = 0; i < products.length; i++) {
     let highestBid = products[i]["bids"].slice(-1);
     let bidInfo = await bidModel.find({ _id: highestBid });
@@ -448,5 +446,36 @@ exports.getWonAuctions = catchAsync(async (req, res, next) => {
   }
   res.send({
     message: wonAuctions,
+  });
+});
+
+
+exports.getPaymentMethod = catchAsync(async (req, res, next) => {
+  let email = req.params.email;
+  let user = await userModel.find().where({ email: email });
+  let uid = user[0]._id;
+
+  // let cards = await creditCardModel.find().where({userId: uid});
+  // let addresses = await addressModel.find().where({userId: uid});
+
+  selectCard = [{ name: "Rafi Banana", cardNumber: "0615" },
+  { name: "Elif Nur Öztürk", cardNumber: "2825" },
+  { name: "Mustafa Enes Gedikoğlu", cardNumber: "2642" },
+  { name: "Egemen Esen", cardNumber: "4319" }]
+
+  selectDelivery = [{ address: "Orta Mah. Sabancı No: B4", city: "Tuzla, İstanbul" },
+  { address: "Tanzimat Sokak, Hayat Apt, No: 27", city: "Göztepe, İstanbul" },
+  { address: "Yıldırım Mah. Gürsel Sokak, No: 56", city: "Bayrampaşa, İstanbul" },
+  { address: "Cumhuriyet Mah. Star Life Sitesi, C Blok", city: "Kepez, Çanakkale" }]
+
+  // Cumhuriyet Mahallesi Sebahattin Ay caddesi star life sitesi 2. Etap C blok daire:5 Kepez/Canakkale
+
+
+  //selectCard = [0, 1, 2, 3, 4, 5, 6, 7, 8]; //cards
+  //selectDelivery = [0, 1, 2, 3, 4, 5]; //addresses
+
+  res.send({
+    cardMessage: selectCard,
+    addressMessage: selectDelivery,
   });
 });
