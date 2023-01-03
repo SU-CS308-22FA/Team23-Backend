@@ -22,8 +22,6 @@ exports.getLogos = catchAsync(async (req, res, next) => {
     logos.push(team.logo);
   });
 
-  console.log(logos);
-
   if (logos.length > 0) {
     res.send({
       message: teams,

@@ -42,6 +42,7 @@ exports.uploadItem = catchAsync(async (req, res, next) => {
       price: req.body.price,
       basePrice: req.body.price,
       open: true,
+      paid: false,
       bids: [],
     });
     // Save user

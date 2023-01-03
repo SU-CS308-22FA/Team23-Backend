@@ -455,13 +455,11 @@ exports.getPaymentMethod = catchAsync(async (req, res, next) => {
   let user = await userModel.find().where({ email: email });
   let uid = user[0]._id;
 
+  let credit = await creditCard.find().where({ userId: uid });
+  let address = user[0].addresses;
+
   // let cards = await creditCardModel.find().where({userId: uid});
   // let addresses = await addressModel.find().where({userId: uid});
-
-  selectCard = [{ name: "Rafi Banana", cardNumber: "0615" },
-  { name: "Elif Nur Öztürk", cardNumber: "2825" },
-  { name: "Mustafa Enes Gedikoğlu", cardNumber: "2642" },
-  { name: "Egemen Esen", cardNumber: "4319" }]
 
   selectDelivery = [{ address: "Orta Mah. Sabancı No: B4", city: "Tuzla, İstanbul" },
   { address: "Tanzimat Sokak, Hayat Apt, No: 27", city: "Göztepe, İstanbul" },
@@ -475,7 +473,85 @@ exports.getPaymentMethod = catchAsync(async (req, res, next) => {
   //selectDelivery = [0, 1, 2, 3, 4, 5]; //addresses
 
   res.send({
-    cardMessage: selectCard,
+    cardMessage: credit,
     addressMessage: selectDelivery,
+  });
+});
+
+
+exports.buyProduct = catchAsync(async (req, res, next) => {
+  let user = await userModel.find().where({ _id: req.body.userId });
+  let product = await productModel.find().where({ _id: req.body.pid });
+
+  let priceInt = product[0].price;
+  let price = priceInt.toString();
+
+  console.log(price);
+
+  var request = {
+    locale: req.body.locale,
+    conversationId: req.body.conversationId,
+    price: price,
+    paidPrice: price,
+    currency: Iyzipay.CURRENCY.TRY,
+    installment: '1',
+    paymentCard: {
+      // cardToken: req.body.cardToken,
+      cardHolderName: 'John Doe',
+      cardNumber: '5528790000000008',
+      expireMonth: '12',
+      expireYear: '2030',
+      cvc: '123',
+    },
+    buyer: {
+      id: req.body.userId,
+      name: user[0].name,
+      surname: user[0].lastname,
+      email: req.body.email,
+      identityNumber: '33655748584',
+      registrationAddress: req.body.address,
+      ip: '85.34.78.112',
+      city: req.body.city,
+      country: 'Turkey',
+      zipCode: '34732'
+    },
+    shippingAddress: {
+      contactName: user[0].name,
+      city: req.body.city,
+      country: 'Turkey',
+      address: req.body.address,
+      zipCode: '34742'
+    },
+    billingAddress: {
+      contactName: user[0].name,
+      city: req.body.city,
+      country: 'Turkey',
+      address: req.body.address,
+      zipCode: '34742'
+    },
+    basketItems: [
+      {
+        id: 'BI101',
+        name: 'Binocular',
+        category1: 'Collectibles',
+        itemType: Iyzipay.BASKET_ITEM_TYPE.PHYSICAL,
+        price: price
+      }
+    ]
+  };
+  iyzipay.payment.create(request, function (err, result) {
+    //console.log(result);
+
+    if (result.status === "success") {
+      let query = { _id: req.body.pid };
+      let newValue = { $set: { paid: true } };
+
+      productModel.updateOne(query, newValue, () => {
+      });
+    }
+
+    res.send({
+      message: result.status,
+    });
   });
 });
