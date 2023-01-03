@@ -42,6 +42,7 @@ const productSchema = new Schema({
   duration: Number,
   price: Number,
   basePrice: Number,
+  paid: Boolean,
   bids: [String],
 });
 
