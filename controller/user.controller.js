@@ -22,7 +22,6 @@ const bidModel = require("../models/bid.model");
 
 const creditCard = require("../models/creditCard.model");
 
-
 const mailgun = require("mailgun-js");
 const creditCardModel = require("../models/creditCard.model");
 
@@ -108,7 +107,12 @@ exports.addAddress = catchAsync(async (req, res, next) => {
 
   if (users.length > 0) {
     let addresses = users[0].addresses;
-    addresses.push({ address: address, city: city, zip: zip, country: country });
+    addresses.push({
+      address: address,
+      city: city,
+      zip: zip,
+      country: country,
+    });
     let query = { email: email };
 
     let newValue = { $set: { addresses: addresses } };
@@ -361,7 +365,9 @@ exports.addCreditCard = catchAsync(async (req, res, next) => {
   let uid = user_userModel[0]._id;
 
   let user = await creditCard.find().where({ email: email });
-  let card = await creditCard.find().where({ cardNumber: cardNumber });
+  let card = await creditCard
+    .find()
+    .where({ cardNumber: cardNumber, email: email });
   // console.log(user);
   if (card.length > 0) {
     message = "exist";
@@ -587,6 +593,7 @@ exports.getPaymentMethod = catchAsync(async (req, res, next) => {
   });
 });
 
+
 exports.buyProduct = catchAsync(async (req, res, next) => {
   let user = await userModel.find().where({ _id: req.body.userId });
   let product = await productModel.find().where({ _id: req.body.pid });
@@ -661,3 +668,4 @@ exports.buyProduct = catchAsync(async (req, res, next) => {
     });
   });
 });
+
