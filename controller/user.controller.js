@@ -22,7 +22,6 @@ const bidModel = require("../models/bid.model");
 
 const creditCard = require("../models/creditCard.model");
 
-
 const mailgun = require("mailgun-js");
 const creditCardModel = require("../models/creditCard.model");
 
@@ -108,7 +107,12 @@ exports.addAddress = catchAsync(async (req, res, next) => {
 
   if (users.length > 0) {
     let addresses = users[0].addresses;
-    addresses.push({ address: address, city: city, zip: zip, country: country });
+    addresses.push({
+      address: address,
+      city: city,
+      zip: zip,
+      country: country,
+    });
     let query = { email: email };
 
     let newValue = { $set: { addresses: addresses } };
@@ -361,7 +365,9 @@ exports.addCreditCard = catchAsync(async (req, res, next) => {
   let uid = user_userModel[0]._id;
 
   let user = await creditCard.find().where({ email: email });
-  let card = await creditCard.find().where({ cardNumber: cardNumber });
+  let card = await creditCard
+    .find()
+    .where({ cardNumber: cardNumber, email: email });
   // console.log(user);
   if (card.length > 0) {
     message = "exist";
@@ -573,18 +579,27 @@ exports.getPaymentMethod = catchAsync(async (req, res, next) => {
   // let cards = await creditCardModel.find().where({userId: uid});
   // let addresses = await addressModel.find().where({userId: uid});
 
-  selectCard = [{ name: "Rafi Banana", cardNumber: "0615" },
-  { name: "Elif Nur Öztürk", cardNumber: "2825" },
-  { name: "Mustafa Enes Gedikoğlu", cardNumber: "2642" },
-  { name: "Egemen Esen", cardNumber: "4319" }]
+  selectCard = [
+    { name: "Rafi Banana", cardNumber: "0615" },
+    { name: "Elif Nur Öztürk", cardNumber: "2825" },
+    { name: "Mustafa Enes Gedikoğlu", cardNumber: "2642" },
+    { name: "Egemen Esen", cardNumber: "4319" },
+  ];
 
-  selectDelivery = [{ address: "Orta Mah. Sabancı No: B4", city: "Tuzla, İstanbul" },
-  { address: "Tanzimat Sokak, Hayat Apt, No: 27", city: "Göztepe, İstanbul" },
-  { address: "Yıldırım Mah. Gürsel Sokak, No: 56", city: "Bayrampaşa, İstanbul" },
-  { address: "Cumhuriyet Mah. Star Life Sitesi, C Blok", city: "Kepez, Çanakkale" }]
+  selectDelivery = [
+    { address: "Orta Mah. Sabancı No: B4", city: "Tuzla, İstanbul" },
+    { address: "Tanzimat Sokak, Hayat Apt, No: 27", city: "Göztepe, İstanbul" },
+    {
+      address: "Yıldırım Mah. Gürsel Sokak, No: 56",
+      city: "Bayrampaşa, İstanbul",
+    },
+    {
+      address: "Cumhuriyet Mah. Star Life Sitesi, C Blok",
+      city: "Kepez, Çanakkale",
+    },
+  ];
 
   // Cumhuriyet Mahallesi Sebahattin Ay caddesi star life sitesi 2. Etap C blok daire:5 Kepez/Canakkale
-
 
   //selectCard = [0, 1, 2, 3, 4, 5, 6, 7, 8]; //cards
   //selectDelivery = [0, 1, 2, 3, 4, 5]; //addresses
@@ -594,4 +609,3 @@ exports.getPaymentMethod = catchAsync(async (req, res, next) => {
     addressMessage: selectDelivery,
   });
 });
-
