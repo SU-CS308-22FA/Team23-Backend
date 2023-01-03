@@ -5,7 +5,6 @@ module.exports = [
     email: "rafi@gmail.com",
     password: "123",
     type: "fan",
-    addresses: [],
   },
   {
     name: "Mustafa",
@@ -13,7 +12,6 @@ module.exports = [
     email: "mustafa@gmail.com",
     password: "123",
     type: "fan",
-    addresses: [],
   },
   {
     name: "Elif",
@@ -21,7 +19,6 @@ module.exports = [
     email: "elif@gmail.com",
     password: "123",
     type: "fan",
-    addresses: [],
   },
   {
     name: "Egemen",
@@ -29,7 +26,6 @@ module.exports = [
     email: "egemenesen@sabanciuniv.edu",
     password: "123",
     type: "fan",
-    addresses: [],
   },
   {
     name: "Fenerbahce",

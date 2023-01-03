@@ -22,7 +22,6 @@ const bidModel = require("../models/bid.model");
 
 const creditCard = require("../models/creditCard.model");
 
-
 const mailgun = require("mailgun-js");
 
 exports.signup = catchAsync(async (req, res, next) => {
@@ -37,6 +36,7 @@ exports.signup = catchAsync(async (req, res, next) => {
   newUser.status = true;
   newUser.purchased = [];
   newUser.bids = [];
+  newUser.addresses = [];
   newUser._id = new ObjectId();
 
   let users = await userModel.find().where({ email: newUser.email });
@@ -115,10 +115,14 @@ exports.addAddress = catchAsync(async (req, res, next) => {
     userModel.updateOne(query, newValue, () => {
       console.log(query, newValue);
       console.log("1 document updated");
+      res.send({
+        message: "Success",
+      });
     });
   } else {
-    console.log("wrong email");
-    message = false;
+    res.send({
+      message: "Fail",
+    });
   }
 });
 
@@ -208,10 +212,7 @@ exports.getTeamStatistics = catchAsync(async (req, res, next) => {
   // console.log(data);
   let begin = data.substr(0, data.indexOf("+"));
 
-  let end = data.substr(
-    data.indexOf("+") + 1,
-    data.indexOf("-") - data.indexOf("+") - 1
-  );
+  let end = data.substr(data.indexOf("+") + 1, data.indexOf("-") - data.indexOf("+") - 1);
 
   let email = data.substr(data.indexOf("-") + 1, data.length);
   // console.log(begin, ",", end, ",", email);
@@ -490,18 +491,21 @@ exports.getPaymentMethod = catchAsync(async (req, res, next) => {
   // let cards = await creditCardModel.find().where({userId: uid});
   // let addresses = await addressModel.find().where({userId: uid});
 
-  selectCard = [{ name: "Rafi Banana", cardNumber: "0615" },
-  { name: "Elif Nur Öztürk", cardNumber: "2825" },
-  { name: "Mustafa Enes Gedikoğlu", cardNumber: "2642" },
-  { name: "Egemen Esen", cardNumber: "4319" }]
+  selectCard = [
+    { name: "Rafi Banana", cardNumber: "0615" },
+    { name: "Elif Nur Öztürk", cardNumber: "2825" },
+    { name: "Mustafa Enes Gedikoğlu", cardNumber: "2642" },
+    { name: "Egemen Esen", cardNumber: "4319" },
+  ];
 
-  selectDelivery = [{ address: "Orta Mah. Sabancı No: B4", city: "Tuzla, İstanbul" },
-  { address: "Tanzimat Sokak, Hayat Apt, No: 27", city: "Göztepe, İstanbul" },
-  { address: "Yıldırım Mah. Gürsel Sokak, No: 56", city: "Bayrampaşa, İstanbul" },
-  { address: "Cumhuriyet Mah. Star Life Sitesi, C Blok", city: "Kepez, Çanakkale" }]
+  selectDelivery = [
+    { address: "Orta Mah. Sabancı No: B4", city: "Tuzla, İstanbul" },
+    { address: "Tanzimat Sokak, Hayat Apt, No: 27", city: "Göztepe, İstanbul" },
+    { address: "Yıldırım Mah. Gürsel Sokak, No: 56", city: "Bayrampaşa, İstanbul" },
+    { address: "Cumhuriyet Mah. Star Life Sitesi, C Blok", city: "Kepez, Çanakkale" },
+  ];
 
   // Cumhuriyet Mahallesi Sebahattin Ay caddesi star life sitesi 2. Etap C blok daire:5 Kepez/Canakkale
-
 
   //selectCard = [0, 1, 2, 3, 4, 5, 6, 7, 8]; //cards
   //selectDelivery = [0, 1, 2, 3, 4, 5]; //addresses
@@ -511,4 +515,3 @@ exports.getPaymentMethod = catchAsync(async (req, res, next) => {
     addressMessage: selectDelivery,
   });
 });
-

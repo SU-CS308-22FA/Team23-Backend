@@ -144,6 +144,7 @@ const seedDB = async () => {
         team: teams[randomNumberGenerator(0, teams.length)].name,
         purchased: [],
         bids: [],
+        addresses: [],
       });
       await user.save();
     } else {
