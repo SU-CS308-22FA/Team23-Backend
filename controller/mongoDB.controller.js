@@ -16,6 +16,14 @@ const userSchema = new Schema({
   email: String,
   password: String,
   status: Boolean,
+  addresses: [
+    {
+      address: String,
+      city: String,
+      zip: String,
+      country: String,
+    },
+  ],
   products: [String],
   purchased: [String],
   bids: [String],
@@ -34,6 +42,7 @@ const productSchema = new Schema({
   duration: Number,
   price: Number,
   basePrice: Number,
+  paid: Boolean,
   bids: [String],
 });
 
@@ -51,6 +60,15 @@ const bidSchema = new Schema({
   date: Number,
 });
 
+const creditCardSchema = new Schema({
+  _id: String,
+  userId: String,
+  cardNumber: String,
+  cvv: String,
+  name: String,
+  expDate: [],
+});
+
 async function run() {
   // Create a separate connection and register a model on it...
   const conn = mongoose.createConnection();
@@ -58,6 +76,7 @@ async function run() {
   conn.model("Product", productSchema);
   conn.model("Team", teamSchema);
   conn.model("Bid", bidSchema);
+  conn.model("Credit Card", creditCardSchema);
 
   const dbURL =
     process.env.DB_URL ||

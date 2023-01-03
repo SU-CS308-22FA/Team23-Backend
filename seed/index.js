@@ -144,6 +144,7 @@ const seedDB = async () => {
         team: teams[randomNumberGenerator(0, teams.length)].name,
         purchased: [],
         bids: [],
+        addresses: [],
       });
       await user.save();
     } else {
@@ -180,7 +181,7 @@ const seedDB = async () => {
       let price = randomPrice();
       let sold = false;
       let open = true;
-
+      let paid = false;
       let bids = await bidGenerator(id, start, price);
 
       if (bids.length === 0) {
@@ -222,6 +223,7 @@ const seedDB = async () => {
         duration: 604800000,
         price: lastPrice,
         basePrice: price,
+        paid: paid,
         bids: bids,
       });
       await product.save();
