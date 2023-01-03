@@ -23,6 +23,7 @@ const bidModel = require("../models/bid.model");
 const creditCard = require("../models/creditCard.model");
 
 const mailgun = require("mailgun-js");
+const creditCardModel = require("../models/creditCard.model");
 
 exports.signup = catchAsync(async (req, res, next) => {
   var newUser = new userModel();
@@ -107,7 +108,12 @@ exports.addAddress = catchAsync(async (req, res, next) => {
 
   if (users.length > 0) {
     let addresses = users[0].addresses;
-    addresses.push({ address: address, city: city, zip: zip, country: country });
+    addresses.push({
+      address: address,
+      city: city,
+      zip: zip,
+      country: country,
+    });
     let query = { email: email };
 
     let newValue = { $set: { addresses: addresses } };
@@ -355,55 +361,139 @@ exports.addCreditCard = catchAsync(async (req, res, next) => {
   let year = expDate[1];
   cardNumber = cardNumber.replace(/\s/g, "");
   console.log(cardNumber);
+  let digits = cardNumber.substr(-4);
 
-  let user = await userModel.find().where({ email: email });
-  let uid = user[0]._id;
+  let user_userModel = await userModel.find().where({ email: email });
+  let uid = user_userModel[0]._id;
 
-  iyzipay.card.create(
-    {
-      locale: Iyzipay.LOCALE.TR,
-      conversationId: "123456789",
-      email: email,
-      externalId: "external id",
-      card: {
-        cardAlias: "card alias",
-        cardHolderName: name,
-        cardNumber: cardNumber,
-        expireMonth: month,
-        expireYear: year,
-      },
-    },
-    function (err, result) {
-      console.log("result", result);
-      if (result.status === "failure") {
-        console.log("failded 0");
-      } else {
-        var newCreditCard = new creditCard();
-        newCreditCard.conversationId = result.conversationId;
-        newCreditCard.userId = uid;
-        newCreditCard.email = email;
-        newCreditCard.cardUserKey = result.cardUserKey;
-        newCreditCard.cardToken = result.cardToken;
-        newCreditCard.lastFourDigits = result.lastFourDigits;
-        newCreditCard.cardType = result.cardType;
-        newCreditCard.cardAssociation = result.cardAssociation;
-        newCreditCard.cardFamily = result.cardFamily;
-        newCreditCard.cardBankName = result.cardBankName;
-        newCreditCard._id = new ObjectId();
-
-        newCreditCard.save(function (err, data) {
-          if (err) {
-            console.log("error");
-          } else {
-            message = "inserted";
+  let user = await creditCard.find().where({ email: email });
+  let card = await creditCard
+    .find()
+    .where({ cardNumber: cardNumber, email: email });
+  // console.log(user);
+  if (card.length > 0) {
+    message = "exist";
+    res.send({
+      message: message,
+    });
+  } else {
+    if (user.length > 0) {
+      iyzipay.card.create(
+        {
+          locale: Iyzipay.LOCALE.TR,
+          conversationId: "123456789",
+          cardUserKey: user[0].cardUserKey,
+          card: {
+            cardAlias: "card alias",
+            cardHolderName: name,
+            cardNumber: cardNumber,
+            expireMonth: month,
+            expireYear: year,
+          },
+        },
+        function (err, result) {
+          console.log("result", result);
+          if (
+            result.status === "failure" &&
+            result.errorMessage === "expireYear geçersizdir"
+          ) {
+            message = "exp";
             res.send({
               message: message,
             });
+          } else {
+            var newCreditCard = new creditCard();
+            newCreditCard.locale = result.locale;
+            newCreditCard.conversationId = result.conversationId;
+            newCreditCard.userId = uid;
+            newCreditCard.email = email;
+            newCreditCard.cardNumber = cardNumber;
+            newCreditCard.cardUserKey = result.cardUserKey;
+            newCreditCard.cardToken = result.cardToken;
+            newCreditCard.lastFourDigits = result.lastFourDigits;
+            newCreditCard.cardType = result.cardType;
+            newCreditCard.cardAssociation = result.cardAssociation;
+            newCreditCard.cardFamily = result.cardFamily;
+            newCreditCard.cardBankName = result.cardBankName;
+            newCreditCard.cardHolderName = name;
+            newCreditCard.expMonth = month;
+            newCreditCard.expYear = year;
+            newCreditCard.cvv = cvv;
+            newCreditCard._id = new ObjectId();
+
+            newCreditCard.save(function (err, data) {
+              if (err) {
+                console.log("error");
+              } else {
+                message = "inserted";
+                res.send({
+                  message: message,
+                });
+              }
+            });
           }
-        });
-      }
+        }
+      );
+    } else if (user.length <= 0) {
+      iyzipay.card.create(
+        {
+          locale: Iyzipay.LOCALE.TR,
+          conversationId: "123456789",
+          email: email,
+          externalId: "external id",
+          card: {
+            cardAlias: "card alias",
+            cardHolderName: name,
+            cardNumber: cardNumber,
+            expireMonth: month,
+            expireYear: year,
+          },
+        },
+        function (err, result) {
+          console.log("result", result);
+          if (
+            result.status === "failure" &&
+            result.errorMessage === "expireYear geçersizdir"
+          ) {
+            message = "exp";
+            res.send({
+              message: message,
+            });
+          } else {
+            var newCreditCard = new creditCard();
+            newCreditCard.locale = result.locale;
+            newCreditCard.conversationId = result.conversationId;
+            newCreditCard.userId = uid;
+            newCreditCard.email = email;
+            newCreditCard.cardNumber = cardNumber;
+            newCreditCard.cardUserKey = result.cardUserKey;
+            newCreditCard.cardToken = result.cardToken;
+            newCreditCard.lastFourDigits = result.lastFourDigits;
+            newCreditCard.cardType = result.cardType;
+            newCreditCard.cardAssociation = result.cardAssociation;
+            newCreditCard.cardFamily = result.cardFamily;
+            newCreditCard.cardBankName = result.cardBankName;
+            newCreditCard.cardHolderName = name;
+            newCreditCard.expMonth = month;
+            newCreditCard.expYear = year;
+            newCreditCard.cvv = cvv;
+            newCreditCard._id = new ObjectId();
+
+            newCreditCard.save(function (err, data) {
+              if (err) {
+                console.log("error");
+              } else {
+                message = "inserted";
+                res.send({
+                  message: message,
+                });
+              }
+            });
+          }
+        }
+      );
     }
-  );
+  }
 });
 
 exports.addFavList = catchAsync(async (req, res, next) => {
@@ -488,30 +578,99 @@ exports.getPaymentMethod = catchAsync(async (req, res, next) => {
   let user = await userModel.find().where({ email: email });
   let uid = user[0]._id;
 
+  let credit = await creditCard.find().where({ userId: uid });
+  let address = user[0].addresses;
+
   // let cards = await creditCardModel.find().where({userId: uid});
   // let addresses = await addressModel.find().where({userId: uid});
 
-  selectCard = [
-    { name: "Rafi Banana", cardNumber: "0615" },
-    { name: "Elif Nur Öztürk", cardNumber: "2825" },
-    { name: "Mustafa Enes Gedikoğlu", cardNumber: "2642" },
-    { name: "Egemen Esen", cardNumber: "4319" },
-  ];
 
-  selectDelivery = [
-    { address: "Orta Mah. Sabancı No: B4", city: "Tuzla, İstanbul" },
-    { address: "Tanzimat Sokak, Hayat Apt, No: 27", city: "Göztepe, İstanbul" },
-    { address: "Yıldırım Mah. Gürsel Sokak, No: 56", city: "Bayrampaşa, İstanbul" },
-    { address: "Cumhuriyet Mah. Star Life Sitesi, C Blok", city: "Kepez, Çanakkale" },
-  ];
+  selectDelivery = [{ address: "Orta Mah. Sabancı No: B4", city: "Tuzla, İstanbul" },
+  { address: "Tanzimat Sokak, Hayat Apt, No: 27", city: "Göztepe, İstanbul" },
+  { address: "Yıldırım Mah. Gürsel Sokak, No: 56", city: "Bayrampaşa, İstanbul" },
+  { address: "Cumhuriyet Mah. Star Life Sitesi, C Blok", city: "Kepez, Çanakkale" }]
 
-  // Cumhuriyet Mahallesi Sebahattin Ay caddesi star life sitesi 2. Etap C blok daire:5 Kepez/Canakkale
-
-  //selectCard = [0, 1, 2, 3, 4, 5, 6, 7, 8]; //cards
-  //selectDelivery = [0, 1, 2, 3, 4, 5]; //addresses
 
   res.send({
-    cardMessage: selectCard,
-    addressMessage: selectDelivery,
+    cardMessage: credit,
+    addressMessage: address,
+  });
+});
+
+
+exports.buyProduct = catchAsync(async (req, res, next) => {
+  let user = await userModel.find().where({ _id: req.body.userId });
+  let product = await productModel.find().where({ _id: req.body.pid });
+
+  let priceInt = product[0].price;
+  let price = priceInt.toString();
+
+  var request = {
+    locale: req.body.locale,
+    conversationId: req.body.conversationId,
+    price: price,
+    paidPrice: price,
+    currency: Iyzipay.CURRENCY.TRY,
+    installment: '1',
+    paymentCard: {
+      // cardToken: req.body.cardToken,
+      cardHolderName: req.body.cardHolderName,
+      cardNumber: req.body.cardNumber,
+      expireMonth: req.body.expMonth,
+      expireYear: req.body.expYear,
+      cvc: req.body.cvv,
+    },
+    buyer: {
+      id: req.body.userId,
+      name: user[0].name,
+      surname: user[0].lastname,
+      email: req.body.email,
+      identityNumber: '33655748584',
+      registrationAddress: req.body.address,
+      ip: '85.34.78.112',
+      city: req.body.city,
+      country: req.body.country,
+      zipCode: req.body.zip
+    },
+    shippingAddress: {
+      contactName: user[0].name,
+      city: req.body.city,
+      country: req.body.country,
+      address: req.body.address,
+      zipCode: req.body.zip
+    },
+    billingAddress: {
+      contactName: user[0].name,
+      city: req.body.city,
+      country: req.body.country,
+      address: req.body.address,
+      zipCode: req.body.zip
+    },
+    basketItems: [
+      {
+        id: 'BI101',
+        name: 'Binocular',
+        category1: 'Collectibles',
+        itemType: Iyzipay.BASKET_ITEM_TYPE.PHYSICAL,
+        price: price
+      }
+    ]
+  };
+  iyzipay.payment.create(request, function (err, result) {
+    //console.log(result);
+
+
+    if (result.status === "success") {
+      let query = { _id: req.body.pid };
+      let newValue = { $set: { paid: true } };
+
+      productModel.updateOne(query, newValue, () => {
+      });
+    }
+
+
+    res.send({
+      message: result.status,
+    });
   });
 });

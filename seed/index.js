@@ -181,7 +181,7 @@ const seedDB = async () => {
       let price = randomPrice();
       let sold = false;
       let open = true;
-
+      let paid = false;
       let bids = await bidGenerator(id, start, price);
 
       if (bids.length === 0) {
@@ -223,6 +223,7 @@ const seedDB = async () => {
         duration: 604800000,
         price: lastPrice,
         basePrice: price,
+        paid: paid,
         bids: bids,
       });
       await product.save();

@@ -3,6 +3,7 @@ const { Schema } = mongoose;
 
 const creditCardSchema = new Schema({
   userId: String,
+  locale: String,
   conversationId: String,
   email: String,
   cardUserKey: String,
@@ -12,6 +13,11 @@ const creditCardSchema = new Schema({
   cardAssociation: String,
   cardFamily: String,
   cardBankName: String,
+  cardNumber: String,
+  cardHolderName: String,
+  expMonth: String,
+  expYear: String,
+  cvv: String,
 });
 
 module.exports = mongoose.model("CreditCard", creditCardSchema);
