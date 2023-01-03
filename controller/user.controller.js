@@ -37,6 +37,7 @@ exports.signup = catchAsync(async (req, res, next) => {
   newUser.status = true;
   newUser.purchased = [];
   newUser.bids = [];
+  newUser.addresses = [];
   newUser._id = new ObjectId();
 
   let users = await userModel.find().where({ email: newUser.email });
@@ -120,10 +121,14 @@ exports.addAddress = catchAsync(async (req, res, next) => {
     userModel.updateOne(query, newValue, () => {
       console.log(query, newValue);
       console.log("1 document updated");
+      res.send({
+        message: "Success",
+      });
     });
   } else {
-    console.log("wrong email");
-    message = false;
+    res.send({
+      message: "Fail",
+    });
   }
 });
 
@@ -213,10 +218,7 @@ exports.getTeamStatistics = catchAsync(async (req, res, next) => {
   // console.log(data);
   let begin = data.substr(0, data.indexOf("+"));
 
-  let end = data.substr(
-    data.indexOf("+") + 1,
-    data.indexOf("-") - data.indexOf("+") - 1
-  );
+  let end = data.substr(data.indexOf("+") + 1, data.indexOf("-") - data.indexOf("+") - 1);
 
   let email = data.substr(data.indexOf("-") + 1, data.length);
   // console.log(begin, ",", end, ",", email);
@@ -582,10 +584,12 @@ exports.getPaymentMethod = catchAsync(async (req, res, next) => {
   // let cards = await creditCardModel.find().where({userId: uid});
   // let addresses = await addressModel.find().where({userId: uid});
 
+
   selectDelivery = [{ address: "Orta Mah. Sabancı No: B4", city: "Tuzla, İstanbul" },
   { address: "Tanzimat Sokak, Hayat Apt, No: 27", city: "Göztepe, İstanbul" },
   { address: "Yıldırım Mah. Gürsel Sokak, No: 56", city: "Bayrampaşa, İstanbul" },
   { address: "Cumhuriyet Mah. Star Life Sitesi, C Blok", city: "Kepez, Çanakkale" }]
+
 
   res.send({
     cardMessage: credit,
@@ -655,6 +659,7 @@ exports.buyProduct = catchAsync(async (req, res, next) => {
   iyzipay.payment.create(request, function (err, result) {
     //console.log(result);
 
+
     if (result.status === "success") {
       let query = { _id: req.body.pid };
       let newValue = { $set: { paid: true } };
@@ -663,9 +668,9 @@ exports.buyProduct = catchAsync(async (req, res, next) => {
       });
     }
 
+
     res.send({
       message: result.status,
     });
   });
 });
-
