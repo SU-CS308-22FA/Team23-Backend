@@ -24,6 +24,7 @@ const creditCard = require("../models/creditCard.model");
 
 
 const mailgun = require("mailgun-js");
+const creditCardModel = require("../models/creditCard.model");
 
 exports.signup = catchAsync(async (req, res, next) => {
   var newUser = new userModel();
@@ -354,55 +355,137 @@ exports.addCreditCard = catchAsync(async (req, res, next) => {
   let year = expDate[1];
   cardNumber = cardNumber.replace(/\s/g, "");
   console.log(cardNumber);
+  let digits = cardNumber.substr(-4);
 
-  let user = await userModel.find().where({ email: email });
-  let uid = user[0]._id;
+  let user_userModel = await userModel.find().where({ email: email });
+  let uid = user_userModel[0]._id;
 
-  iyzipay.card.create(
-    {
-      locale: Iyzipay.LOCALE.TR,
-      conversationId: "123456789",
-      email: email,
-      externalId: "external id",
-      card: {
-        cardAlias: "card alias",
-        cardHolderName: name,
-        cardNumber: cardNumber,
-        expireMonth: month,
-        expireYear: year,
-      },
-    },
-    function (err, result) {
-      console.log("result", result);
-      if (result.status === "failure") {
-        console.log("failded 0");
-      } else {
-        var newCreditCard = new creditCard();
-        newCreditCard.conversationId = result.conversationId;
-        newCreditCard.userId = uid;
-        newCreditCard.email = email;
-        newCreditCard.cardUserKey = result.cardUserKey;
-        newCreditCard.cardToken = result.cardToken;
-        newCreditCard.lastFourDigits = result.lastFourDigits;
-        newCreditCard.cardType = result.cardType;
-        newCreditCard.cardAssociation = result.cardAssociation;
-        newCreditCard.cardFamily = result.cardFamily;
-        newCreditCard.cardBankName = result.cardBankName;
-        newCreditCard._id = new ObjectId();
-
-        newCreditCard.save(function (err, data) {
-          if (err) {
-            console.log("error");
-          } else {
-            message = "inserted";
+  let user = await creditCard.find().where({ email: email });
+  let card = await creditCard.find().where({ cardNumber: cardNumber });
+  // console.log(user);
+  if (card.length > 0) {
+    message = "exist";
+    res.send({
+      message: message,
+    });
+  } else {
+    if (user.length > 0) {
+      iyzipay.card.create(
+        {
+          locale: Iyzipay.LOCALE.TR,
+          conversationId: "123456789",
+          cardUserKey: user[0].cardUserKey,
+          card: {
+            cardAlias: "card alias",
+            cardHolderName: name,
+            cardNumber: cardNumber,
+            expireMonth: month,
+            expireYear: year,
+          },
+        },
+        function (err, result) {
+          console.log("result", result);
+          if (
+            result.status === "failure" &&
+            result.errorMessage === "expireYear geçersizdir"
+          ) {
+            message = "exp";
             res.send({
               message: message,
             });
+          } else {
+            var newCreditCard = new creditCard();
+            newCreditCard.locale = result.locale;
+            newCreditCard.conversationId = result.conversationId;
+            newCreditCard.userId = uid;
+            newCreditCard.email = email;
+            newCreditCard.cardNumber = cardNumber;
+            newCreditCard.cardUserKey = result.cardUserKey;
+            newCreditCard.cardToken = result.cardToken;
+            newCreditCard.lastFourDigits = result.lastFourDigits;
+            newCreditCard.cardType = result.cardType;
+            newCreditCard.cardAssociation = result.cardAssociation;
+            newCreditCard.cardFamily = result.cardFamily;
+            newCreditCard.cardBankName = result.cardBankName;
+            newCreditCard.cardHolderName = name;
+            newCreditCard.expMonth = month;
+            newCreditCard.expYear = year;
+            newCreditCard.cvv = cvv;
+            newCreditCard._id = new ObjectId();
+
+            newCreditCard.save(function (err, data) {
+              if (err) {
+                console.log("error");
+              } else {
+                message = "inserted";
+                res.send({
+                  message: message,
+                });
+              }
+            });
           }
-        });
-      }
+        }
+      );
+    } else if (user.length <= 0) {
+      iyzipay.card.create(
+        {
+          locale: Iyzipay.LOCALE.TR,
+          conversationId: "123456789",
+          email: email,
+          externalId: "external id",
+          card: {
+            cardAlias: "card alias",
+            cardHolderName: name,
+            cardNumber: cardNumber,
+            expireMonth: month,
+            expireYear: year,
+          },
+        },
+        function (err, result) {
+          console.log("result", result);
+          if (
+            result.status === "failure" &&
+            result.errorMessage === "expireYear geçersizdir"
+          ) {
+            message = "exp";
+            res.send({
+              message: message,
+            });
+          } else {
+            var newCreditCard = new creditCard();
+            newCreditCard.locale = result.locale;
+            newCreditCard.conversationId = result.conversationId;
+            newCreditCard.userId = uid;
+            newCreditCard.email = email;
+            newCreditCard.cardNumber = cardNumber;
+            newCreditCard.cardUserKey = result.cardUserKey;
+            newCreditCard.cardToken = result.cardToken;
+            newCreditCard.lastFourDigits = result.lastFourDigits;
+            newCreditCard.cardType = result.cardType;
+            newCreditCard.cardAssociation = result.cardAssociation;
+            newCreditCard.cardFamily = result.cardFamily;
+            newCreditCard.cardBankName = result.cardBankName;
+            newCreditCard.cardHolderName = name;
+            newCreditCard.expMonth = month;
+            newCreditCard.expYear = year;
+            newCreditCard.cvv = cvv;
+            newCreditCard._id = new ObjectId();
+
+            newCreditCard.save(function (err, data) {
+              if (err) {
+                console.log("error");
+              } else {
+                message = "inserted";
+                res.send({
+                  message: message,
+                });
+              }
+            });
+          }
+        }
+      );
     }
-  );
+  }
 });
 
 exports.addFavList = catchAsync(async (req, res, next) => {
