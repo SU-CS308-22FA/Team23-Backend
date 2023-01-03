@@ -10,6 +10,14 @@ const userSchema = new Schema({
   age: Number,
   team: String,
   email: String,
+  addresses: [
+    {
+      address: String,
+      city: String,
+      zip: String,
+      country: String,
+    },
+  ],
   // {
   //   type: String,
   //   required: true,

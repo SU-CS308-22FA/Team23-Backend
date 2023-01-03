@@ -1,10 +1,12 @@
 const express = require("express");
+
 var Iyzipay = require("iyzipay");
 var iyzipay = new Iyzipay({
   apiKey: "sandbox-HLLU432VO604hCISMSiFKATBMIsGQTHV",
   secretKey: "sandbox-dOQHTJkhkjvlhoCTDMBG1IR2SQ30iJMi",
   uri: "https://sandbox-api.iyzipay.com",
 });
+
 var router = express.Router();
 let mongoose = require("mongoose");
 let auth = require("../controller/auth");
@@ -17,9 +19,12 @@ const teamModel = require("../models/team.model");
 const catchAsync = require("./../utils/catchAsync");
 const productModel = require("../models/product.model");
 const bidModel = require("../models/bid.model");
+
 const creditCard = require("../models/creditCard.model");
 
+
 const mailgun = require("mailgun-js");
+const creditCardModel = require("../models/creditCard.model");
 
 exports.signup = catchAsync(async (req, res, next) => {
   var newUser = new userModel();
@@ -89,6 +94,33 @@ exports.signin = catchAsync(async (req, res, next) => {
     message = false;
   }
   res.send({ message: message });
+});
+
+exports.addAddress = catchAsync(async (req, res, next) => {
+  console.log(req.body);
+  let email = req.body.email;
+  let address = req.body.address;
+  let city = req.body.city;
+  let zip = req.body.zip;
+  let country = req.body.country;
+
+  let users = await userModel.find().where({ email: email });
+
+  if (users.length > 0) {
+    let addresses = users[0].addresses;
+    addresses.push({ address: address, city: city, zip: zip, country: country });
+    let query = { email: email };
+
+    let newValue = { $set: { addresses: addresses } };
+
+    userModel.updateOne(query, newValue, () => {
+      console.log(query, newValue);
+      console.log("1 document updated");
+    });
+  } else {
+    console.log("wrong email");
+    message = false;
+  }
 });
 
 exports.getUserInfo = catchAsync(async (req, res, next) => {
@@ -176,10 +208,12 @@ exports.getTeamStatistics = catchAsync(async (req, res, next) => {
   let soldItems = [];
   // console.log(data);
   let begin = data.substr(0, data.indexOf("+"));
+
   let end = data.substr(
     data.indexOf("+") + 1,
     data.indexOf("-") - data.indexOf("+") - 1
   );
+
   let email = data.substr(data.indexOf("-") + 1, data.length);
   // console.log(begin, ",", end, ",", email);
 
@@ -321,55 +355,137 @@ exports.addCreditCard = catchAsync(async (req, res, next) => {
   let year = expDate[1];
   cardNumber = cardNumber.replace(/\s/g, "");
   console.log(cardNumber);
+  let digits = cardNumber.substr(-4);
 
-  let user = await userModel.find().where({ email: email });
-  let uid = user[0]._id;
+  let user_userModel = await userModel.find().where({ email: email });
+  let uid = user_userModel[0]._id;
 
-  iyzipay.card.create(
-    {
-      locale: Iyzipay.LOCALE.TR,
-      conversationId: "123456789",
-      email: email,
-      externalId: "external id",
-      card: {
-        cardAlias: "card alias",
-        cardHolderName: name,
-        cardNumber: cardNumber,
-        expireMonth: month,
-        expireYear: year,
-      },
-    },
-    function (err, result) {
-      console.log("result", result);
-      if (result.status === "failure") {
-        console.log("failded 0");
-      } else {
-        var newCreditCard = new creditCard();
-        newCreditCard.conversationId = result.conversationId;
-        newCreditCard.userId = uid;
-        newCreditCard.email = email;
-        newCreditCard.cardUserKey = result.cardUserKey;
-        newCreditCard.cardToken = result.cardToken;
-        newCreditCard.lastFourDigits = result.lastFourDigits;
-        newCreditCard.cardType = result.cardType;
-        newCreditCard.cardAssociation = result.cardAssociation;
-        newCreditCard.cardFamily = result.cardFamily;
-        newCreditCard.cardBankName = result.cardBankName;
-        newCreditCard._id = new ObjectId();
-
-        newCreditCard.save(function (err, data) {
-          if (err) {
-            console.log("error");
-          } else {
-            message = "inserted";
+  let user = await creditCard.find().where({ email: email });
+  let card = await creditCard.find().where({ cardNumber: cardNumber });
+  // console.log(user);
+  if (card.length > 0) {
+    message = "exist";
+    res.send({
+      message: message,
+    });
+  } else {
+    if (user.length > 0) {
+      iyzipay.card.create(
+        {
+          locale: Iyzipay.LOCALE.TR,
+          conversationId: "123456789",
+          cardUserKey: user[0].cardUserKey,
+          card: {
+            cardAlias: "card alias",
+            cardHolderName: name,
+            cardNumber: cardNumber,
+            expireMonth: month,
+            expireYear: year,
+          },
+        },
+        function (err, result) {
+          console.log("result", result);
+          if (
+            result.status === "failure" &&
+            result.errorMessage === "expireYear geçersizdir"
+          ) {
+            message = "exp";
             res.send({
               message: message,
             });
+          } else {
+            var newCreditCard = new creditCard();
+            newCreditCard.locale = result.locale;
+            newCreditCard.conversationId = result.conversationId;
+            newCreditCard.userId = uid;
+            newCreditCard.email = email;
+            newCreditCard.cardNumber = cardNumber;
+            newCreditCard.cardUserKey = result.cardUserKey;
+            newCreditCard.cardToken = result.cardToken;
+            newCreditCard.lastFourDigits = result.lastFourDigits;
+            newCreditCard.cardType = result.cardType;
+            newCreditCard.cardAssociation = result.cardAssociation;
+            newCreditCard.cardFamily = result.cardFamily;
+            newCreditCard.cardBankName = result.cardBankName;
+            newCreditCard.cardHolderName = name;
+            newCreditCard.expMonth = month;
+            newCreditCard.expYear = year;
+            newCreditCard.cvv = cvv;
+            newCreditCard._id = new ObjectId();
+
+            newCreditCard.save(function (err, data) {
+              if (err) {
+                console.log("error");
+              } else {
+                message = "inserted";
+                res.send({
+                  message: message,
+                });
+              }
+            });
           }
-        });
-      }
+        }
+      );
+    } else if (user.length <= 0) {
+      iyzipay.card.create(
+        {
+          locale: Iyzipay.LOCALE.TR,
+          conversationId: "123456789",
+          email: email,
+          externalId: "external id",
+          card: {
+            cardAlias: "card alias",
+            cardHolderName: name,
+            cardNumber: cardNumber,
+            expireMonth: month,
+            expireYear: year,
+          },
+        },
+        function (err, result) {
+          console.log("result", result);
+          if (
+            result.status === "failure" &&
+            result.errorMessage === "expireYear geçersizdir"
+          ) {
+            message = "exp";
+            res.send({
+              message: message,
+            });
+          } else {
+            var newCreditCard = new creditCard();
+            newCreditCard.locale = result.locale;
+            newCreditCard.conversationId = result.conversationId;
+            newCreditCard.userId = uid;
+            newCreditCard.email = email;
+            newCreditCard.cardNumber = cardNumber;
+            newCreditCard.cardUserKey = result.cardUserKey;
+            newCreditCard.cardToken = result.cardToken;
+            newCreditCard.lastFourDigits = result.lastFourDigits;
+            newCreditCard.cardType = result.cardType;
+            newCreditCard.cardAssociation = result.cardAssociation;
+            newCreditCard.cardFamily = result.cardFamily;
+            newCreditCard.cardBankName = result.cardBankName;
+            newCreditCard.cardHolderName = name;
+            newCreditCard.expMonth = month;
+            newCreditCard.expYear = year;
+            newCreditCard.cvv = cvv;
+            newCreditCard._id = new ObjectId();
+
+            newCreditCard.save(function (err, data) {
+              if (err) {
+                console.log("error");
+              } else {
+                message = "inserted";
+                res.send({
+                  message: message,
+                });
+              }
+            });
+          }
+        }
+      );
     }
-  );
+  }
 });
 
 exports.addFavList = catchAsync(async (req, res, next) => {
@@ -449,7 +565,6 @@ exports.getWonAuctions = catchAsync(async (req, res, next) => {
   });
 });
 
-
 exports.getPaymentMethod = catchAsync(async (req, res, next) => {
   let email = req.params.email;
   let user = await userModel.find().where({ email: email });
@@ -477,7 +592,6 @@ exports.getPaymentMethod = catchAsync(async (req, res, next) => {
     addressMessage: selectDelivery,
   });
 });
-
 
 exports.buyProduct = catchAsync(async (req, res, next) => {
   let user = await userModel.find().where({ _id: req.body.userId });
