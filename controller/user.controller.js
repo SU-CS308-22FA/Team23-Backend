@@ -587,14 +587,9 @@ exports.getPaymentMethod = catchAsync(async (req, res, next) => {
   { address: "Yıldırım Mah. Gürsel Sokak, No: 56", city: "Bayrampaşa, İstanbul" },
   { address: "Cumhuriyet Mah. Star Life Sitesi, C Blok", city: "Kepez, Çanakkale" }]
 
-  // Cumhuriyet Mahallesi Sebahattin Ay caddesi star life sitesi 2. Etap C blok daire:5 Kepez/Canakkale
-
-  //selectCard = [0, 1, 2, 3, 4, 5, 6, 7, 8]; //cards
-  //selectDelivery = [0, 1, 2, 3, 4, 5]; //addresses
-
   res.send({
     cardMessage: credit,
-    addressMessage: selectDelivery,
+    addressMessage: address,
   });
 });
 
@@ -606,8 +601,6 @@ exports.buyProduct = catchAsync(async (req, res, next) => {
   let priceInt = product[0].price;
   let price = priceInt.toString();
 
-  console.log(price);
-
   var request = {
     locale: req.body.locale,
     conversationId: req.body.conversationId,
@@ -617,11 +610,11 @@ exports.buyProduct = catchAsync(async (req, res, next) => {
     installment: '1',
     paymentCard: {
       // cardToken: req.body.cardToken,
-      cardHolderName: 'John Doe',
-      cardNumber: '5528790000000008',
-      expireMonth: '12',
-      expireYear: '2030',
-      cvc: '123',
+      cardHolderName: req.body.cardHolderName,
+      cardNumber: req.body.cardNumber,
+      expireMonth: req.body.expMonth,
+      expireYear: req.body.expYear,
+      cvc: req.body.cvv,
     },
     buyer: {
       id: req.body.userId,
@@ -632,22 +625,22 @@ exports.buyProduct = catchAsync(async (req, res, next) => {
       registrationAddress: req.body.address,
       ip: '85.34.78.112',
       city: req.body.city,
-      country: 'Turkey',
-      zipCode: '34732'
+      country: req.body.country,
+      zipCode: req.body.zip
     },
     shippingAddress: {
       contactName: user[0].name,
       city: req.body.city,
-      country: 'Turkey',
+      country: req.body.country,
       address: req.body.address,
-      zipCode: '34742'
+      zipCode: req.body.zip
     },
     billingAddress: {
       contactName: user[0].name,
       city: req.body.city,
-      country: 'Turkey',
+      country: req.body.country,
       address: req.body.address,
-      zipCode: '34742'
+      zipCode: req.body.zip
     },
     basketItems: [
       {
